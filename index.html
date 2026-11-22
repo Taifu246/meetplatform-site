@@ -80,6 +80,12 @@ a { color: var(--accent); }
 .nav { display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.92rem; }
 .nav a { color: var(--muted); text-decoration: none; }
 .nav a:hover { color: var(--ink); }
+.menu-knop {
+  display: none; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--sheet); color: var(--ink); font: 600 0.9rem var(--f-body);
+}
+.menu-knop::before { content: "☰"; font-size: 1rem; line-height: 1; }
+.menu-knop[aria-expanded="true"]::before { content: "✕"; }
 
 /* ---------- Hero ---------- */
 .hero { padding-block: 40px 28px; }
@@ -312,6 +318,32 @@ footer p { margin: 0; }
   .col-laag { display: none; }
   .section { padding-block: 64px 8px; }
 }
+/* Telefoon: menu inklappen en alles op een kolom */
+@media (max-width: 720px) {
+  .menu-knop { display: inline-flex; }
+  .nav { display: none; width: 100%; flex-direction: column; gap: 0; }
+  .nav.open { display: flex; }
+  .nav a { padding: 12px 2px; border-top: 1px solid var(--line); font-size: 1rem; color: var(--ink); }
+}
+@media (max-width: 640px) {
+  .hero { padding-block: 24px 20px; }
+  .lead { font-size: 1.02rem; }
+  .actions .btn { flex: 1 1 100%; justify-content: center; }
+  .app-bar .btn-sim { width: 100%; justify-content: center; }
+  .props { font-size: 0.72rem; }
+  .cmd { font-size: 0.68rem; min-height: 0; }
+  table { font-size: 0.82rem; }
+  th, td { padding: 8px 6px; }
+  th:first-child, td:first-child { padding-left: 12px; }
+  th:last-child, td:last-child { padding-right: 12px; }
+  .check { grid-template-columns: minmax(0, 1fr); }
+  .check button { grid-row: auto; justify-self: start; }
+  .hit { stroke-width: 56; }
+  .blk .hitbox { stroke: transparent !important; stroke-width: 30; }
+  .principle { padding: 20px; }
+  .plan, form { padding: 18px; }
+  footer .wrap { flex-direction: column; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -327,7 +359,8 @@ img { max-width: 100%; }
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#start"><b>Meetplatform</b><span>voor AutoCAD-tekeningen</span></a>
-    <nav class="nav" aria-label="Hoofdmenu">
+    <button class="menu-knop" id="menu-knop" type="button" aria-expanded="false" aria-controls="hoofdmenu">Menu</button>
+    <nav class="nav" id="hoofdmenu" aria-label="Hoofdmenu">
       <a href="#demo">Demo</a>
       <a href="#werking">Werking</a>
       <a href="#betrouwbaar">Betrouwbaarheid</a>
@@ -1019,6 +1052,20 @@ img { max-width: 100%; }
     try { localStorage.setItem('meetplatform-todo', toggle.checked ? 'aan' : 'uit'); } catch (e) {}
   });
   pasTodoToe();
+
+  // ---------- Menu op de telefoon ----------
+  var menuKnop = document.getElementById('menu-knop');
+  var menu = document.getElementById('hoofdmenu');
+  menuKnop.addEventListener('click', function () {
+    var open = menu.classList.toggle('open');
+    menuKnop.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  menu.addEventListener('click', function (e) {
+    if (e.target.closest('a')) {
+      menu.classList.remove('open');
+      menuKnop.setAttribute('aria-expanded', 'false');
+    }
+  });
 
   // ---------- Formulier (demo) ----------
   var form = document.getElementById('aanvraag');
