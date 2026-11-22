@@ -1,0 +1,974 @@
+<title>Meetplatform Werkomgeving</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: app-shell met zijbalk (beheer) en werkvlak per project met tabbladen, zelfde huisstijl als de productwebsite. */
+:root {
+  --paper: #EEF1EE;
+  --sheet: #FAFBF9;
+  --sunk: #E6EAE7;
+  --ink: #16201B;
+  --muted: #56635C;
+  --line: #D3DAD5;
+  --grid: #E4E9E5;
+  --accent: #2346C4;
+  --accent-soft: #E3E9FB;
+  --on-accent: #FFFFFF;
+  --warn: #A9560A;
+  --warn-soft: #FBEBD9;
+  --bad: #B42318;
+  --bad-soft: #FBE3E0;
+  --ok: #1E7449;
+  --ok-soft: #DDF1E5;
+  --cmd-bg: #1B2420;
+  --cmd-fg: #CFE0D6;
+  --side: #16201B;
+  --side-fg: #C9D3CD;
+  --side-muted: #85938B;
+  --side-hover: #24302A;
+  --l-buiten: #16201B;
+  --l-binnen: #0B7480;
+  --l-kozijn: #7B44C4;
+  --l-deur: #AE2F63;
+  --l-hulp: #8C978F;
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12171B; --sheet: #192026; --sunk: #141A1F; --ink: #E4EAE6; --muted: #98A49D; --line: #2B343B; --grid: #1F272D;
+    --accent: #8CA4FF; --accent-soft: #232D4D; --on-accent: #0E1430;
+    --warn: #F2A54E; --warn-soft: #3A2A17; --bad: #FF8A7A; --bad-soft: #3B1E1B; --ok: #62CF94; --ok-soft: #173326;
+    --cmd-bg: #0C1012; --cmd-fg: #BFD3C7;
+    --side: #0D1114; --side-fg: #C9D3CD; --side-muted: #7C8982; --side-hover: #1A2228;
+    --l-buiten: #E4EAE6; --l-binnen: #3FC3CF; --l-kozijn: #B58CF0; --l-deur: #F07AA8; --l-hulp: #6E7A73;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12171B; --sheet: #192026; --sunk: #141A1F; --ink: #E4EAE6; --muted: #98A49D; --line: #2B343B; --grid: #1F272D;
+  --accent: #8CA4FF; --accent-soft: #232D4D; --on-accent: #0E1430;
+  --warn: #F2A54E; --warn-soft: #3A2A17; --bad: #FF8A7A; --bad-soft: #3B1E1B; --ok: #62CF94; --ok-soft: #173326;
+  --cmd-bg: #0C1012; --cmd-fg: #BFD3C7;
+  --side: #0D1114; --side-fg: #C9D3CD; --side-muted: #7C8982; --side-hover: #1A2228;
+  --l-buiten: #E4EAE6; --l-binnen: #3FC3CF; --l-kozijn: #B58CF0; --l-deur: #F07AA8; --l-hulp: #6E7A73;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); }
+.num { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.muted { color: var(--muted); }
+
+/* ---------- Shell ---------- */
+.shell { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 100%; }
+.side {
+  background: var(--side); color: var(--side-fg); display: flex; flex-direction: column; gap: 22px;
+  padding-block: 18px; padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: 14px;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.brand { display: grid; gap: 2px; padding: 4px 8px; }
+.brand b { font-family: var(--f-display); font-stretch: 118%; font-weight: 800; font-size: 1.08rem; color: var(--side-fg); }
+.brand span { font-family: var(--f-mono); font-size: 0.7rem; color: var(--side-muted); }
+.side nav { display: grid; gap: 2px; }
+.side h6 {
+  margin: 0 0 6px; padding: 0 8px; font: 500 0.68rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--side-muted);
+}
+.side a {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 6px;
+  color: var(--side-fg); text-decoration: none; font-size: 0.92rem;
+}
+.side a:hover { background: var(--side-hover); }
+.side a.active { background: var(--side-hover); box-shadow: inset 2px 0 0 var(--accent); }
+.side .count { font-family: var(--f-mono); font-size: 0.72rem; color: var(--side-muted); }
+.side-status { margin-top: auto; display: grid; gap: 8px; padding: 12px 10px; border-top: 1px solid var(--side-hover); font-size: 0.8rem; }
+.side-status div { display: flex; align-items: center; gap: 8px; color: var(--side-muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); flex: none; }
+
+.main { min-width: 0; display: flex; flex-direction: column; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  padding-block: 12px; padding-left: 28px; padding-right: max(28px, env(safe-area-inset-right, 0px));
+  border-bottom: 1px solid var(--line); background: var(--sheet);
+}
+.crumbs { display: flex; gap: 8px; align-items: center; font-size: 0.88rem; color: var(--muted); flex-wrap: wrap; min-width: 0; }
+.crumbs b { color: var(--ink); font-weight: 600; }
+.top-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.search {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; width: 240px; max-width: 100%;
+}
+.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 0.84rem; color: var(--muted); cursor: pointer; white-space: nowrap; }
+
+.content { padding-block: 24px 48px; padding-left: 28px; padding-right: max(28px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; align-content: start; }
+
+/* ---------- Ontwikkelstatus ---------- */
+.dev {
+  display: inline-flex; align-items: center; font: 500 0.66rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 2px 7px; border-radius: 4px; white-space: nowrap; vertical-align: middle;
+}
+.dev-pro { color: var(--muted); border: 1px solid var(--line); }
+.dev-new { color: var(--accent); border: 1px dashed var(--accent); }
+.side .dev-pro { color: var(--side-muted); border-color: var(--side-hover); }
+.side .dev-new { color: var(--accent); }
+body.no-dev .dev { display: none; }
+
+/* ---------- Koppen en tabs ---------- */
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.page-head h1 { margin: 0; font-family: var(--f-display); font-stretch: 112%; font-weight: 750; font-size: 1.75rem; letter-spacing: -0.015em; text-wrap: balance; }
+.page-head p { margin: 4px 0 0; color: var(--muted); }
+.head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tabs a {
+  padding: 10px 14px; text-decoration: none; color: var(--muted); font-weight: 500; font-size: 0.92rem; white-space: nowrap;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; display: inline-flex; gap: 8px; align-items: center;
+}
+.tabs a:hover { color: var(--ink); }
+.tabs a.active { color: var(--ink); border-bottom-color: var(--accent); }
+
+/* ---------- Bouwstenen ---------- */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 6px; cursor: pointer;
+  font-weight: 600; font-size: 0.88rem; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); text-decoration: none;
+}
+.btn:hover { border-color: var(--muted); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn-primary:hover { filter: brightness(1.07); border-color: var(--accent); }
+.btn-sm { padding: 5px 10px; font-size: 0.8rem; font-weight: 500; }
+
+.card { background: var(--sheet); border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.card-head h2, .card-head h3 { margin: 0; font-family: var(--f-display); font-stretch: 108%; font-weight: 700; font-size: 1.02rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.card-body { padding: 16px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.grid-main { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--sheet); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 4px; }
+.tile small { color: var(--muted); font-size: 0.8rem; }
+.tile strong { font-family: var(--f-display); font-stretch: 110%; font-weight: 720; font-size: 1.55rem; font-variant-numeric: tabular-nums; }
+.tile span { font-size: 0.8rem; color: var(--muted); }
+.tile.warn { box-shadow: inset 0 3px 0 var(--warn); }
+
+.chip { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.chip-ok { color: var(--ok); background: var(--ok-soft); }
+.chip-warn { color: var(--warn); background: var(--warn-soft); }
+.chip-bad { color: var(--bad); background: var(--bad-soft); }
+.chip-info { color: var(--accent); background: var(--accent-soft); }
+.chip-mute { color: var(--muted); background: var(--sunk); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th {
+  text-align: left; font-weight: 500; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted);
+  padding: 8px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; background: var(--sheet);
+}
+td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tbody tr:hover { background: var(--accent-soft); }
+tfoot td { font-weight: 600; border-bottom: 0; }
+tfoot tr.grand td { border-top: 2px solid var(--ink); font-size: 0.95rem; }
+.handle { font-family: var(--f-mono); font-size: 0.8rem; }
+.laag { font-family: var(--f-mono); font-size: 0.78rem; color: var(--muted); }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; }
+
+.notice { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 10px 14px; border-radius: 0 6px 6px 0; font-size: 0.9rem; }
+.notice.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+
+/* Projectkaarten */
+.projects { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; }
+.project { text-align: left; background: var(--sheet); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 12px; cursor: pointer; }
+.project:hover { border-color: var(--accent); }
+.project[aria-disabled="true"] { cursor: default; }
+.project[aria-disabled="true"]:hover { border-color: var(--line); }
+.project h3 { margin: 0; font-family: var(--f-display); font-stretch: 108%; font-weight: 700; font-size: 1.05rem; }
+.project dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font-size: 0.85rem; }
+.project dt { color: var(--muted); }
+.project dd { margin: 0; text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.project-top { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
+
+/* Balken */
+.bars { display: grid; gap: 10px; }
+.bar-row { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.86rem; }
+.bar-track { height: 10px; background: var(--sunk); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; }
+
+/* Checklist en activiteit */
+.checklist { list-style: none; margin: 0; padding: 0; display: grid; }
+.checklist li { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+.checklist li:last-child { border-bottom: 0; }
+.mark { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 0.75rem; font-weight: 700; flex: none; }
+.mark.ok { background: var(--ok-soft); color: var(--ok); }
+.mark.no { background: var(--warn-soft); color: var(--warn); }
+.feed { list-style: none; margin: 0; padding: 0; display: grid; }
+.feed li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 0.88rem; }
+.feed li:last-child { border-bottom: 0; }
+.feed time { font-family: var(--f-mono); font-size: 0.78rem; color: var(--muted); }
+
+/* Tekening */
+.viewer { display: grid; grid-template-columns: minmax(0, 1fr) 260px; }
+.viewer-canvas { border-right: 1px solid var(--line); min-width: 0; }
+.viewer-canvas svg { display: block; width: 100%; height: auto; }
+.viewer-side { display: grid; align-content: start; }
+.viewer-side section { padding: 14px 16px; border-bottom: 1px solid var(--line); display: grid; gap: 8px; }
+.viewer-side h4 { margin: 0; font: 500 0.7rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.layer-row { display: flex; align-items: center; gap: 8px; font-size: 0.86rem; cursor: pointer; }
+.layer-row span.laag { margin-left: auto; }
+.props-list { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; font-size: 0.85rem; margin: 0; }
+.props-list dt { color: var(--muted); }
+.props-list dd { margin: 0; font-family: var(--f-mono); overflow-wrap: anywhere; }
+.cmd { background: var(--cmd-bg); color: var(--cmd-fg); font-family: var(--f-mono); font-size: 0.76rem; line-height: 1.6; padding: 10px 14px; overflow-x: auto; border-radius: 0 0 8px 8px; }
+.cmd div { white-space: pre; }
+
+.ent { fill: none; stroke-linecap: square; transition: opacity .15s; }
+.lay-WAND-BUITEN { stroke: var(--l-buiten); stroke-width: 5; }
+.lay-WAND-BINNEN { stroke: var(--l-binnen); stroke-width: 3.2; }
+.lay-HULPLIJN { stroke: var(--l-hulp); stroke-width: 1.6; stroke-dasharray: 10 7; }
+.blk.lay-KOZIJN * { stroke: var(--l-kozijn); stroke-width: 1.8; fill: var(--sheet); }
+.blk.lay-DEUR * { stroke: var(--l-deur); stroke-width: 1.6; fill: none; }
+.blk .gat { fill: var(--sheet) !important; stroke: none !important; }
+.hit { stroke: transparent; stroke-width: 22; fill: none; cursor: pointer; pointer-events: stroke; }
+.blk .hitbox { fill: transparent !important; stroke: none !important; cursor: pointer; pointer-events: all; }
+.has-sel .ent, .has-sel .blk { opacity: 0.22; }
+.has-sel .ent.sel { opacity: 1; stroke: var(--accent); }
+.has-sel .blk.sel { opacity: 1; }
+.has-sel .blk.sel * { stroke: var(--accent); }
+.verborgen { display: none; }
+.dim line { stroke: var(--muted); stroke-width: 1; }
+.dim text { font-family: var(--f-mono); font-size: 22px; fill: var(--muted); }
+.raster-line { stroke: var(--grid); stroke-width: 1; }
+
+/* Hoeveelheden */
+details.cat { background: var(--sheet); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+details.cat + details.cat { margin-top: 10px; }
+details.cat summary {
+  list-style: none; cursor: pointer; display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 13px 16px;
+}
+details.cat summary::-webkit-details-marker { display: none; }
+details.cat summary::before { content: "▸"; color: var(--muted); transition: transform .15s; }
+details.cat[open] summary::before { transform: rotate(90deg); }
+details.cat[open] summary { border-bottom: 1px solid var(--line); }
+details.cat summary b { font-weight: 600; }
+
+/* Meetcontrole */
+.issue { display: grid; grid-template-columns: 4px minmax(0, 1fr) auto; gap: 0 14px; border-bottom: 1px solid var(--line); }
+.issue:last-child { border-bottom: 0; }
+.issue .stripe { background: var(--warn); }
+.issue.opgelost .stripe { background: var(--ok); }
+.issue.geaccepteerd .stripe { background: var(--muted); }
+.issue-body { padding: 12px 0; display: grid; gap: 4px; min-width: 0; }
+.issue-body p { margin: 0; font-size: 0.9rem; }
+.issue-meta { font-family: var(--f-mono); font-size: 0.76rem; color: var(--muted); }
+.issue-actions { display: flex; gap: 6px; align-items: center; padding: 12px 16px 12px 0; flex-wrap: wrap; justify-content: flex-end; }
+
+/* Revisies */
+.diff-add { color: var(--ok); font-weight: 600; }
+.diff-del { color: var(--bad); font-weight: 600; }
+.diff-mod { color: var(--warn); font-weight: 600; }
+
+/* Export */
+.export-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.export-opt { display: grid; gap: 8px; align-content: start; }
+.export-opt p { margin: 0; color: var(--muted); font-size: 0.88rem; }
+.pdf { background: #FFFFFF; color: #1A1A1A; border: 1px solid var(--line); border-radius: 4px; padding: 26px 26px 20px; font-size: 0.72rem; box-shadow: 0 12px 28px -18px rgba(0,0,0,.45); max-width: 520px; }
+.pdf h5 { margin: 0; font: 700 1rem var(--f-display); font-stretch: 110%; }
+.pdf table { font-size: 0.7rem; margin-top: 12px; }
+.pdf th { color: #555; background: #FFFFFF; border-bottom: 1px solid #CCCCCC; padding: 5px 6px; }
+.pdf td { border-bottom: 1px solid #E5E5E5; padding: 5px 6px; }
+.pdf tbody tr:hover { background: transparent; }
+.pdf-foot { display: flex; justify-content: space-between; margin-top: 14px; color: #777; font-size: 0.65rem; }
+
+/* Toast */
+.toast {
+  position: fixed; right: max(20px, calc(env(safe-area-inset-right, 0px) + 20px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  background: var(--ink); color: var(--paper); padding: 10px 14px; border-radius: 6px; font-size: 0.88rem; max-width: min(380px, calc(100vw - 40px));
+  box-shadow: 0 10px 30px -12px rgba(0,0,0,.5); z-index: 50;
+}
+
+.form-row { display: grid; gap: 6px; }
+.input, .select { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; width: 100%; }
+
+/* ---------- Responsief ---------- */
+@media (max-width: 1100px) {
+  .grid-main, .viewer { grid-template-columns: minmax(0, 1fr); }
+  .viewer-canvas { border-right: 0; border-bottom: 1px solid var(--line); }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 820px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; padding-right: max(14px, env(safe-area-inset-right, 0px)); }
+  .side nav { display: flex; flex-wrap: wrap; gap: 2px; }
+  .side h6, .side-status, .side .count { display: none; }
+  .brand { width: 100%; }
+  .topbar, .content { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .grid-2, .export-grid { grid-template-columns: minmax(0, 1fr); }
+  .search { width: 100%; }
+}
+@media (max-width: 520px) {
+  .tiles { grid-template-columns: minmax(0, 1fr); }
+  .bar-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .bar-row .bar-track { grid-column: 1 / -1; grid-row: 2; }
+  .issue { grid-template-columns: 4px minmax(0, 1fr); }
+  .issue-actions { grid-column: 2; justify-content: flex-start; padding: 0 0 12px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="shell">
+  <aside class="side" aria-label="Hoofdnavigatie">
+    <div class="brand"><b>Meetplatform</b><span>werkomgeving · concept</span></div>
+    <nav aria-label="Werk">
+      <h6>Werk</h6>
+      <a href="#projecten" data-nav="projecten"><span>Projecten</span><span class="dev dev-pro">prototype</span></a>
+    </nav>
+    <nav aria-label="Beheer">
+      <h6>Beheer</h6>
+      <a href="#regels" data-nav="regels"><span>Herkenningsregels</span><span class="dev dev-pro">prototype</span></a>
+      <a href="#artikelen" data-nav="artikelen"><span>Artikelen en prijzen</span><span class="dev dev-new">nieuw</span></a>
+      <a href="#koppeling" data-nav="koppeling"><span>AutoCAD-koppeling</span><span class="dev dev-new">nieuw</span></a>
+    </nav>
+    <div class="side-status">
+      <div><span class="dot"></span>AutoCAD verbonden</div>
+      <div><span class="dot"></span>Server en database bereikbaar</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="crumbs" id="crumbs"></div>
+      <div class="top-tools">
+        <input class="search" id="zoek" type="search" placeholder="Zoek project, laag of handle" aria-label="Zoeken">
+        <label class="toggle" for="toon-dev"><input type="checkbox" id="toon-dev" checked> Ontwikkelstatus tonen</label>
+      </div>
+    </div>
+    <main class="content" id="view"></main>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // =====================================================
+  // VOORBEELDDATA (zelfde tekening als de productwebsite)
+  // =====================================================
+  var LAGEN = {
+    'WAND-BUITEN': { code: '21', naam: 'Buitenwanden', eenheid: 'm¹', kleur: '--l-buiten', soort: 'lengte', artikel: 'A-2110' },
+    'WAND-BINNEN': { code: '22', naam: 'Binnenwanden', eenheid: 'm¹', kleur: '--l-binnen', soort: 'lengte', artikel: 'A-2210' },
+    'KOZIJN':      { code: '31', naam: 'Buitenkozijnen', eenheid: 'st', kleur: '--l-kozijn', soort: 'aantal', artikel: 'A-3120' },
+    'DEUR':        { code: '32', naam: 'Binnendeuren', eenheid: 'st', kleur: '--l-deur', soort: 'aantal', artikel: 'A-3210' }
+  };
+
+  var ARTIKELEN = [
+    { code: 'A-2110', naam: 'Buitenwand kalkzandsteen 214 mm, h = 2,70 m', eenheid: 'm¹', prijs: 185.00, leverancier: 'Voorbeeld Bouwstoffen' },
+    { code: 'A-2210', naam: 'Binnenwand gipsblok 100 mm, h = 2,60 m', eenheid: 'm¹', prijs: 96.50, leverancier: 'Voorbeeld Bouwstoffen' },
+    { code: 'A-3120', naam: 'Kunststof kozijn 1200 × 1400 mm, HR++', eenheid: 'st', prijs: 1250.00, leverancier: 'Voorbeeld Kozijnen' },
+    { code: 'A-3210', naam: 'Binnendeur stomp 930 × 2315 mm, incl. kozijn', eenheid: 'st', prijs: 385.00, leverancier: 'Voorbeeld Deuren' },
+    { code: 'A-4100', naam: 'Dekvloer 50 mm', eenheid: 'm²', prijs: 24.75, leverancier: 'Voorbeeld Vloeren' }
+  ];
+
+  var lijnen = [
+    { h: '2A0', laag: 'WAND-BUITEN', x1: 0, y1: 0, x2: 12000, y2: 0 },
+    { h: '2A1', laag: 'WAND-BUITEN', x1: 12000, y1: 0, x2: 12000, y2: 8000 },
+    { h: '2A2', laag: 'WAND-BUITEN', x1: 12000, y1: 8000, x2: 0, y2: 8000 },
+    { h: '2A3', laag: 'WAND-BUITEN', x1: 0, y1: 8000, x2: 0, y2: 0 },
+    { h: '2A4', laag: 'WAND-BUITEN', x1: 10800, y1: 8000, x2: 12000, y2: 8000 },
+    { h: '2A5', laag: 'WAND-BINNEN', x1: 5000, y1: 0, x2: 5000, y2: 8000 },
+    { h: '2A6', laag: 'WAND-BINNEN', x1: 5000, y1: 4400, x2: 12000, y2: 4400 },
+    { h: '2A7', laag: 'WAND-BINNEN', x1: 0, y1: 3600, x2: 5000, y2: 3600 },
+    { h: '2A8', laag: 'WAND-BINNEN', x1: 12000, y1: 4400, x2: 5000, y2: 4400 },
+    { h: '2A9', laag: 'WAND-BINNEN', x1: 8500, y1: 4400, x2: 8500, y2: 8000 },
+    { h: '2AA', laag: 'HULPLIJN', x1: 0, y1: 9200, x2: 12000, y2: 9200 }
+  ];
+
+  var blokken = [
+    { h: '2B0', laag: 'KOZIJN', naam: 'KOZIJN-1200', x: 1500, y: 0, len: 1200, r: 'h' },
+    { h: '2B1', laag: 'KOZIJN', naam: 'KOZIJN-1200', x: 7000, y: 0, len: 1200, r: 'h' },
+    { h: '2B2', laag: 'KOZIJN', naam: 'KOZIJN-1200', x: 12000, y: 1500, len: 1200, r: 'v' },
+    { h: '2B3', laag: 'KOZIJN', naam: 'KOZIJN-1200', x: 2000, y: 8000, len: 1200, r: 'h' },
+    { h: '2B4', laag: 'DEUR', naam: 'DEUR-930', x: 5000, y: 1500, len: 900, r: 'v', zwaai: [1, 0] },
+    { h: '2B5', laag: 'DEUR', naam: 'DEUR-930', x: 6000, y: 4400, len: 900, r: 'h', zwaai: [0, -1] },
+    { h: '2B6', laag: 'DEUR', naam: 'DEUR-930', x: 2000, y: 3600, len: 900, r: 'h', zwaai: [0, 1] }
+  ];
+
+  // Revisie A: zonder 2A9 en 2B3, en 2A6 was 1 m korter
+  var REV_A = {
+    naam: 'Revisie A', datum: '12-11-2026',
+    weg: ['2A9', '2B3'],
+    anders: { '2A6': { x1: 6000, y1: 4400, x2: 12000, y2: 4400 } }
+  };
+
+  var PROJECTEN = [
+    { id: 'woning-a', naam: 'Woning type A', dwg: 'woning_type_a_revB.dwg', status: 'controle', open: true },
+    { id: 'rij-2', naam: 'Rijwoningen blok 2', dwg: 'rijwoningen_blok2.dwg', status: 'gereed', lijnen: 1846, blokken: 212, controle: 0, totaal: 284316.40 },
+    { id: 'aanbouw', naam: 'Aanbouw Dorpsstraat', dwg: 'aanbouw_dorpsstraat.dwg', status: 'controle', lijnen: 132, blokken: 9, controle: 5, totaal: 21877.15 },
+    { id: 'kantoor', naam: 'Kantoor Noordzijde', dwg: '—', status: 'wacht', lijnen: 0, blokken: 0, controle: 0, totaal: 0 }
+  ];
+
+  // =====================================================
+  // REKENEN
+  // =====================================================
+  var EPS = 0.000001;
+  function lengteM(l) { return Math.hypot(l.x2 - l.x1, l.y2 - l.y1) / 1000; }
+  function overlapM(a, b) {
+    var vx = a.x2 - a.x1, vy = a.y2 - a.y1, la = Math.hypot(vx, vy);
+    var wx = b.x2 - b.x1, wy = b.y2 - b.y1, lb = Math.hypot(wx, wy);
+    if (la <= EPS || lb <= EPS) return 0;
+    var dC = Math.abs(vx * (b.y1 - a.y1) - vy * (b.x1 - a.x1)) / la;
+    var dD = Math.abs(vx * (b.y2 - a.y1) - vy * (b.x2 - a.x1)) / la;
+    if (dC > EPS || dD > EPS) return 0;
+    var ux = vx / la, uy = vy / la;
+    var pC = (b.x1 - a.x1) * ux + (b.y1 - a.y1) * uy;
+    var pD = (b.x2 - a.x1) * ux + (b.y2 - a.y1) * uy;
+    var ov = Math.max(0, Math.min(la, Math.max(pC, pD)) - Math.max(0, Math.min(pC, pD)));
+    return ov <= EPS ? 0 : ov / 1000;
+  }
+  function fmt(n, dec) { return n.toLocaleString('nl-NL', { minimumFractionDigits: dec, maximumFractionDigits: dec }); }
+  function euro(n) { return n.toLocaleString('nl-NL', { style: 'currency', currency: 'EUR' }); }
+  function rond(n) { return Math.round(n * 100) / 100; }
+  function artikel(code) { return ARTIKELEN.filter(function (a) { return a.code === code; })[0]; }
+
+  // Status per meetcontrole (lokaal aanpasbaar)
+  var issueStatus = {};
+
+  function controles() {
+    var uit = [];
+    for (var i = 0; i < lijnen.length; i++) {
+      for (var j = i + 1; j < lijnen.length; j++) {
+        var a = lijnen[i], b = lijnen[j], ov = overlapM(a, b);
+        if (ov <= 0) continue;
+        var dubbel = Math.abs(ov - lengteM(a)) <= EPS && Math.abs(ov - lengteM(b)) <= EPS;
+        uit.push({
+          id: a.h + '-' + b.h, soort: dubbel ? 'Dubbele lijn' : 'Gedeeltelijke overlap',
+          tekst: dubbel ? 'Twee identieke lijnen op ' + a.laag + '. Mogelijk dubbel geteld.' : 'Lijnen overlappen elkaar op ' + a.laag + '.',
+          waarde: ov, laag: a.laag, handles: [a.h, b.h]
+        });
+      }
+    }
+    lijnen.forEach(function (l) {
+      if (!LAGEN[l.laag]) {
+        uit.push({ id: 'laag-' + l.h, soort: 'Laag niet herkend', tekst: 'Lijn op laag ' + l.laag + ' hoort bij geen herkenningsregel. Niet meegeteld.', waarde: lengteM(l), laag: l.laag, handles: [l.h] });
+      }
+    });
+    uit.forEach(function (c) { c.status = issueStatus[c.id] || 'open'; });
+    return uit;
+  }
+
+  function hoeveelheden(lijnSet, blokSet) {
+    var rijen = [];
+    Object.keys(LAGEN).forEach(function (laag) {
+      var def = LAGEN[laag], objecten = [], waarde = 0;
+      if (def.soort === 'lengte') {
+        lijnSet.forEach(function (l) { if (l.laag === laag) { objecten.push(l); waarde += lengteM(l); } });
+      } else {
+        blokSet.forEach(function (b) { if (b.laag === laag) { objecten.push(b); waarde += 1; } });
+      }
+      rijen.push({ laag: laag, def: def, objecten: objecten, waarde: waarde, dec: def.soort === 'lengte' ? 3 : 0 });
+    });
+    return rijen;
+  }
+
+  function calculatie(rijen) {
+    var regels = rijen.map(function (r) {
+      var art = artikel(r.def.artikel);
+      var hoeveelheid = r.dec === 3 ? Math.round(r.waarde * 1000) / 1000 : r.waarde;
+      return { r: r, art: art, hoeveelheid: hoeveelheid, totaal: rond(hoeveelheid * art.prijs) };
+    });
+    var excl = rond(regels.reduce(function (t, x) { return t + x.totaal; }, 0));
+    var btw = rond(excl * 0.21);
+    return { regels: regels, excl: excl, btw: btw, incl: rond(excl + btw) };
+  }
+
+  function revisieA() {
+    var l = lijnen.filter(function (x) { return REV_A.weg.indexOf(x.h) < 0; }).map(function (x) {
+      return REV_A.anders[x.h] ? Object.assign({}, x, REV_A.anders[x.h]) : x;
+    });
+    var b = blokken.filter(function (x) { return REV_A.weg.indexOf(x.h) < 0; });
+    return { lijnen: l, blokken: b };
+  }
+
+  // =====================================================
+  // HULPFUNCTIES UI
+  // =====================================================
+  var view = document.getElementById('view');
+  var toastEl = document.getElementById('toast');
+  var toastTimer;
+  function toast(tekst) {
+    toastEl.textContent = tekst;
+    toastEl.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.hidden = true; }, 2600);
+  }
+  function dev(nieuw) { return nieuw ? '<span class="dev dev-new">te ontwikkelen</span>' : '<span class="dev dev-pro">in prototype</span>'; }
+  function swatch(kleur) { return '<span class="swatch" style="background:var(' + kleur + ')"></span>'; }
+
+  var PROJECT_TABS = [
+    { id: 'overzicht', naam: 'Overzicht', nieuw: false },
+    { id: 'tekening', naam: 'Tekening', nieuw: true },
+    { id: 'hoeveelheden', naam: 'Hoeveelheden', nieuw: false },
+    { id: 'controle', naam: 'Meetcontrole', nieuw: false },
+    { id: 'calculatie', naam: 'Calculatie', nieuw: false },
+    { id: 'revisies', naam: 'Revisies', nieuw: true },
+    { id: 'export', naam: 'Export', nieuw: false }
+  ];
+
+  function projectKop(actief) {
+    var ctrl = controles().filter(function (c) { return c.status === 'open'; }).length;
+    return '<div class="page-head"><div><h1>Woning type A</h1><p class="mono" style="font-size:.8rem">woning_type_a_revB.dwg · tekeneenheid millimeter · laatst bijgewerkt 19:14</p></div>' +
+      '<div class="head-actions"><span class="chip chip-ok" style="align-self:center">Live verbonden</span>' +
+      (ctrl ? '<span class="chip chip-warn" style="align-self:center">' + ctrl + ' controle' + (ctrl === 1 ? '' : 's') + ' open</span>' : '') + '</div></div>' +
+      '<nav class="tabs" aria-label="Projectonderdelen">' + PROJECT_TABS.map(function (t) {
+        return '<a href="#' + t.id + '" class="' + (t.id === actief ? 'active' : '') + '">' + t.naam + (t.nieuw ? ' <span class="dev dev-new">nieuw</span>' : '') + '</a>';
+      }).join('') + '</nav>';
+  }
+
+  // =====================================================
+  // SCHERMEN
+  // =====================================================
+  var SCHERMEN = {};
+
+  SCHERMEN.projecten = function () {
+    var c = calculatie(hoeveelheden(lijnen, blokken));
+    var ctrl = controles().filter(function (x) { return x.status === 'open'; }).length;
+    var html = '<div class="page-head"><div><h1>Projecten</h1><p>Elk project hoort bij één tekening. Wijzigingen in AutoCAD komen hier live binnen.</p></div>' +
+      '<div class="head-actions"><button class="btn btn-primary" type="button" data-actie="nieuw-project">Nieuw project</button> ' + dev(true) + '</div></div>';
+    html += '<div class="notice">Voorbeeldgegevens. Alleen <b>Woning type A</b> is volledig uitgewerkt; de andere kaarten tonen hoe een projectlijst eruit kan zien.</div>';
+    html += '<div class="projects">';
+    PROJECTEN.forEach(function (p) {
+      var l = p.open ? lijnen.length : p.lijnen, b = p.open ? blokken.length : p.blokken;
+      var k = p.open ? ctrl : p.controle, t = p.open ? c.excl : p.totaal;
+      var chip = p.status === 'gereed' ? '<span class="chip chip-ok">Gereed voor export</span>'
+        : p.status === 'wacht' ? '<span class="chip chip-mute">Wacht op tekening</span>'
+        : '<span class="chip chip-warn">Controle nodig</span>';
+      html += '<button type="button" class="project" data-project="' + p.id + '"' + (p.open ? '' : ' aria-disabled="true"') + '>' +
+        '<div class="project-top"><h3>' + p.naam + '</h3>' + chip + '</div>' +
+        '<div class="laag">' + p.dwg + '</div>' +
+        '<dl><dt>Lijnen</dt><dd>' + fmt(l, 0) + '</dd><dt>Blokken</dt><dd>' + fmt(b, 0) + '</dd>' +
+        '<dt>Open controles</dt><dd>' + k + '</dd><dt>Calculatie excl. btw</dt><dd>' + (t ? euro(t) : '—') + '</dd></dl></button>';
+    });
+    html += '</div>';
+    return html;
+  };
+
+  SCHERMEN.overzicht = function () {
+    var rijen = hoeveelheden(lijnen, blokken);
+    var calc = calculatie(rijen);
+    var ctrl = controles();
+    var open = ctrl.filter(function (c) { return c.status === 'open'; }).length;
+    var aantalObj = lijnen.length + blokken.length;
+    var herkend = lijnen.filter(function (l) { return LAGEN[l.laag]; }).length + blokken.length;
+    var html = projectKop('overzicht');
+    html += '<div class="tiles">' +
+      '<div class="tile"><small>Gemeten objecten</small><strong>' + aantalObj + '</strong><span>' + lijnen.length + ' lijnen · ' + blokken.length + ' blokken</span></div>' +
+      '<div class="tile"><small>Herkend</small><strong>' + Math.round(herkend / aantalObj * 100) + '%</strong><span>' + herkend + ' van ' + aantalObj + ' objecten</span></div>' +
+      '<div class="tile' + (open ? ' warn' : '') + '"><small>Controle nodig</small><strong>' + open + '</strong><span>van ' + ctrl.length + ' meldingen</span></div>' +
+      '<div class="tile"><small>Calculatie excl. btw</small><strong>' + euro(calc.excl) + '</strong><span>incl. btw ' + euro(calc.incl) + '</span></div></div>';
+
+    // Hoeveelheden per categorie
+    var maxL = Math.max.apply(null, rijen.filter(function (r) { return r.dec === 3; }).map(function (r) { return r.waarde; }));
+    var maxA = Math.max.apply(null, rijen.filter(function (r) { return r.dec === 0; }).map(function (r) { return r.waarde; }));
+    var bars = rijen.map(function (r) {
+      var pct = r.waarde / (r.dec === 3 ? maxL : maxA) * 100;
+      return '<div class="bar-row"><span>' + swatch(r.def.kleur) + r.def.naam + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct.toFixed(1) + '%;background:var(' + r.def.kleur + ')"></div></div><span class="num">' + fmt(r.waarde, r.dec) + ' ' + r.def.eenheid + '</span></div>';
+    }).join('');
+
+    var checks = [
+      { ok: !lijnen.some(function (l) { return !LAGEN[l.laag]; }), tekst: 'Alle lagen zijn gekoppeld aan een herkenningsregel', nee: '1 laag zonder regel (HULPLIJN)' },
+      { ok: open === 0, tekst: 'Alle meetcontroles zijn afgehandeld', nee: open + ' melding(en) staan nog open' },
+      { ok: true, tekst: 'Alle artikelen hebben een prijs' },
+      { ok: true, tekst: 'Tekeneenheid is bekend (millimeter)' }
+    ];
+    var checklist = checks.map(function (c) {
+      return '<li><span class="mark ' + (c.ok ? 'ok' : 'no') + '">' + (c.ok ? '✓' : '!') + '</span><div>' + c.tekst + (c.ok ? '' : '<div class="muted" style="font-size:.82rem">' + c.nee + '</div>') + '</div></li>';
+    }).join('');
+
+    var feed = [
+      ['19:14', 'Selectie vanuit de website: 2 objecten (2A6, 2A8)'],
+      ['19:12', 'AutoCAD: 3 verwijderd'],
+      ['19:11', 'AutoCAD: 3 nieuw/hersteld'],
+      ['18:52', 'Herkenningsregel toegevoegd: DEUR → 32 Binnendeuren'],
+      ['18:40', 'Volledige synchronisatie: ' + lijnen.length + ' lijnen']
+    ].map(function (f) { return '<li><time>' + f[0] + '</time><span>' + f[1] + '</span></li>'; }).join('');
+
+    html += '<div class="grid-main">' +
+      '<div class="card"><div class="card-head"><h2>Hoeveelheden per categorie ' + dev(false) + '</h2><a class="btn btn-sm" href="#hoeveelheden">Alle hoeveelheden</a></div><div class="card-body"><div class="bars">' + bars + '</div></div></div>' +
+      '<div class="card"><div class="card-head"><h2>Klaar voor export? ' + dev(true) + '</h2></div><div class="card-body"><ul class="checklist">' + checklist + '</ul></div></div>' +
+      '</div>';
+    html += '<div class="card"><div class="card-head"><h2>Activiteit ' + dev(true) + '</h2><span class="muted" style="font-size:.82rem">Vandaag</span></div><div class="card-body"><ul class="feed">' + feed + '</ul></div></div>';
+    return html;
+  };
+
+  // ---------- Tekening ----------
+  var NS = 'http://www.w3.org/2000/svg';
+  var selectie = null;
+  var verborgenLagen = {};
+  function sx(x) { return (x + 800) / 10; }
+  function sy(y) { return (10400 - y) / 10; }
+  function el(naam, attrs, ouder) {
+    var e = document.createElementNS(NS, naam);
+    Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+    if (ouder) ouder.appendChild(e);
+    return e;
+  }
+
+  function tekenSvg(svg, opKlik) {
+    svg.textContent = '';
+    var defs = el('defs', {}, svg);
+    var pat = el('pattern', { id: 'raster', width: 50, height: 50, patternUnits: 'userSpaceOnUse' }, defs);
+    el('path', { d: 'M50 0H0V50', class: 'raster-line', fill: 'none' }, pat);
+    el('rect', { x: 0, y: 0, width: 1360, height: 1160, fill: 'url(#raster)' }, svg);
+    var dim = el('g', { class: 'dim', 'aria-hidden': 'true' }, svg);
+    var dy = sy(-900);
+    el('line', { x1: sx(0), y1: dy, x2: sx(12000), y2: dy }, dim);
+    [0, 5000, 12000].forEach(function (x) {
+      el('line', { x1: sx(x), y1: sy(-300), x2: sx(x), y2: dy + 12 }, dim);
+      el('line', { x1: sx(x) - 9, y1: dy + 9, x2: sx(x) + 9, y2: dy - 9 }, dim);
+    });
+    el('text', { x: sx(2500), y: dy - 10, 'text-anchor': 'middle' }, dim).textContent = '5000';
+    el('text', { x: sx(8500), y: dy - 10, 'text-anchor': 'middle' }, dim).textContent = '7000';
+
+    lijnen.forEach(function (l) {
+      var g = el('g', { class: verborgenLagen[l.laag] ? 'verborgen' : '' }, svg);
+      el('line', { x1: sx(l.x1), y1: sy(l.y1), x2: sx(l.x2), y2: sy(l.y2), class: 'ent lay-' + l.laag, 'data-h': l.h }, g);
+      el('line', { x1: sx(l.x1), y1: sy(l.y1), x2: sx(l.x2), y2: sy(l.y2), class: 'hit' }, g)
+        .addEventListener('click', function () { opKlik(l.h); });
+    });
+    blokken.forEach(function (b) {
+      var g = el('g', { class: 'blk lay-' + b.laag + (verborgenLagen[b.laag] ? ' verborgen' : ''), 'data-h': b.h }, svg);
+      var dik = b.laag === 'KOZIJN' ? 180 : 140;
+      if (b.r === 'h') el('rect', { x: sx(b.x), y: sy(b.y + dik / 2), width: b.len / 10, height: dik / 10, class: 'gat' }, g);
+      else el('rect', { x: sx(b.x - dik / 2), y: sy(b.y + b.len), width: dik / 10, height: b.len / 10, class: 'gat' }, g);
+      if (b.laag === 'KOZIJN') {
+        if (b.r === 'h') {
+          el('rect', { x: sx(b.x), y: sy(b.y + 90), width: b.len / 10, height: 18 }, g);
+          el('line', { x1: sx(b.x), y1: sy(b.y), x2: sx(b.x + b.len), y2: sy(b.y) }, g);
+        } else {
+          el('rect', { x: sx(b.x - 90), y: sy(b.y + b.len), width: 18, height: b.len / 10 }, g);
+          el('line', { x1: sx(b.x), y1: sy(b.y), x2: sx(b.x), y2: sy(b.y + b.len) }, g);
+        }
+      } else {
+        var ex = b.r === 'h' ? b.x + b.len : b.x, ey = b.r === 'h' ? b.y : b.y + b.len;
+        var bx = b.x + b.zwaai[0] * b.len, by = b.y + b.zwaai[1] * b.len;
+        el('line', { x1: sx(b.x), y1: sy(b.y), x2: sx(bx), y2: sy(by) }, g);
+        var px = sx(ex) - sx(b.x), py = sy(ey) - sy(b.y), qx = sx(bx) - sx(b.x), qy = sy(by) - sy(b.y);
+        var sweep = (px * qy - py * qx) > 0 ? 1 : 0;
+        el('path', { d: 'M' + sx(ex) + ' ' + sy(ey) + ' A' + b.len / 10 + ' ' + b.len / 10 + ' 0 0 ' + sweep + ' ' + sx(bx) + ' ' + sy(by) }, g);
+      }
+      // Klikvlak op basis van de opening (getBBox werkt niet in verborgen elementen)
+      var x0 = b.r === 'h' ? b.x : b.x - 450, y0 = b.r === 'h' ? b.y - 450 : b.y;
+      var w = b.r === 'h' ? b.len : 900, hgt = b.r === 'h' ? 900 : b.len;
+      el('rect', { x: sx(x0), y: sy(y0 + hgt), width: w / 10, height: hgt / 10, class: 'hitbox' }, g)
+        .addEventListener('click', function () { opKlik(b.h); });
+    });
+    pasSelectieToe(svg);
+  }
+
+  function pasSelectieToe(svg) {
+    svg.classList.toggle('has-sel', !!selectie);
+    svg.querySelectorAll('.ent, .blk').forEach(function (e) {
+      e.classList.toggle('sel', !!selectie && selectie.indexOf(e.getAttribute('data-h')) >= 0);
+    });
+  }
+
+  function objectInfo(h) {
+    var l = lijnen.filter(function (x) { return x.h === h; })[0];
+    if (l) {
+      return '<dl class="props-list"><dt>Handle</dt><dd>' + l.h + '</dd><dt>Type</dt><dd>LINE</dd><dt>Laag</dt><dd>' + l.laag + '</dd>' +
+        '<dt>Begin</dt><dd>' + fmt(l.x1, 0) + ', ' + fmt(l.y1, 0) + '</dd><dt>Eind</dt><dd>' + fmt(l.x2, 0) + ', ' + fmt(l.y2, 0) + '</dd>' +
+        '<dt>Lengte</dt><dd>' + fmt(lengteM(l), 3) + ' m¹</dd><dt>Categorie</dt><dd>' + (LAGEN[l.laag] ? LAGEN[l.laag].code + ' ' + LAGEN[l.laag].naam : 'Niet herkend') + '</dd></dl>';
+    }
+    var b = blokken.filter(function (x) { return x.h === h; })[0];
+    return '<dl class="props-list"><dt>Handle</dt><dd>' + b.h + '</dd><dt>Type</dt><dd>INSERT</dd><dt>Blok</dt><dd>' + b.naam + '</dd><dt>Laag</dt><dd>' + b.laag + '</dd>' +
+      '<dt>Aantal</dt><dd>1 st</dd><dt>Categorie</dt><dd>' + LAGEN[b.laag].code + ' ' + LAGEN[b.laag].naam + '</dd></dl>';
+  }
+
+  SCHERMEN.tekening = function () {
+    var lagen = Object.keys(LAGEN).concat(['HULPLIJN']);
+    var html = projectKop('tekening');
+    html += '<div class="notice">Een tekeningviewer in de browser, zodat je zonder AutoCAD kunt zien waar een hoeveelheid vandaan komt. Laag aan- en uitzetten en objecten aanklikken werkt in dit concept.</div>';
+    html += '<div class="card"><div class="viewer"><div class="viewer-canvas"><svg id="viewer-svg" viewBox="0 0 1360 1160" role="img" aria-label="Plattegrond woning type A"></svg></div>' +
+      '<div class="viewer-side"><section><h4>Lagen</h4>' + lagen.map(function (laag) {
+        var kleur = LAGEN[laag] ? LAGEN[laag].kleur : '--l-hulp';
+        return '<label class="layer-row" for="laag-' + laag + '"><input type="checkbox" id="laag-' + laag + '" data-laag="' + laag + '"' + (verborgenLagen[laag] ? '' : ' checked') + '>' + swatch(kleur) + (LAGEN[laag] ? LAGEN[laag].naam : 'Niet herkend') + '<span class="laag">' + laag + '</span></label>';
+      }).join('') + '</section>' +
+      '<section><h4>Eigenschappen</h4><div id="viewer-props" class="muted" style="font-size:.86rem">Klik op een object in de tekening.</div></section>' +
+      '<section><button class="btn btn-sm" type="button" data-actie="selecteer-autocad" id="viewer-sel" disabled>Selecteer in AutoCAD</button></section></div></div>' +
+      '<div class="cmd" id="viewer-cmd"><div>Command: (CAD:SelecteerHandles \'("2A6" "2A8"))</div><div>[CAD] Geselecteerd via website: 2 object(en).</div></div></div>';
+    return html;
+  };
+  SCHERMEN.tekening.na = function () {
+    var svg = document.getElementById('viewer-svg');
+    function klik(h) {
+      selectie = [h];
+      document.getElementById('viewer-props').classList.remove('muted');
+      document.getElementById('viewer-props').innerHTML = objectInfo(h);
+      document.getElementById('viewer-sel').disabled = false;
+      pasSelectieToe(svg);
+    }
+    tekenSvg(svg, klik);
+    document.querySelectorAll('[data-laag]').forEach(function (cb) {
+      cb.addEventListener('change', function () { verborgenLagen[cb.dataset.laag] = !cb.checked; tekenSvg(svg, klik); });
+    });
+  };
+
+  SCHERMEN.hoeveelheden = function () {
+    var rijen = hoeveelheden(lijnen, blokken);
+    var html = projectKop('hoeveelheden');
+    html += '<div class="notice">Gemeten en gegroepeerd vanuit AutoCAD via de herkenningsregels. Open een categorie om de afzonderlijke objecten te zien.</div>';
+    html += '<div>';
+    rijen.forEach(function (r, i) {
+      var ctrl = controles().some(function (c) { return c.laag === r.laag && c.status === 'open'; });
+      html += '<details class="cat"' + (i === 1 ? ' open' : '') + '><summary>' +
+        '<span>' + swatch(r.def.kleur) + '<b>' + r.def.code + ' ' + r.def.naam + '</b> <span class="laag">' + r.laag + ' · ' + r.objecten.length + ' objecten</span></span>' +
+        '<span class="num">' + fmt(r.waarde, r.dec) + ' ' + r.def.eenheid + '</span>' +
+        (ctrl ? '<span class="chip chip-warn">Controle nodig</span>' : '<span class="chip chip-ok">OK</span>') + '</summary>' +
+        '<div class="table-wrap"><table><thead><tr><th>Handle</th><th>Type</th><th>Laag</th><th class="num">Hoeveelheid</th><th></th></tr></thead><tbody>' +
+        r.objecten.map(function (o) {
+          var w = r.dec === 3 ? fmt(lengteM(o), 3) + ' m¹' : '1 st';
+          return '<tr><td class="handle">' + o.h + '</td><td>' + (r.dec === 3 ? 'LINE' : 'INSERT · ' + o.naam) + '</td><td class="laag">' + o.laag + '</td><td class="num">' + w + '</td>' +
+            '<td style="text-align:right"><button class="btn btn-sm" type="button" data-actie="selecteer" data-h="' + o.h + '">Selecteer in AutoCAD</button></td></tr>';
+        }).join('') + '</tbody></table></div></details>';
+    });
+    // Niet herkend
+    var onbekend = lijnen.filter(function (l) { return !LAGEN[l.laag]; });
+    if (onbekend.length) {
+      html += '<details class="cat" style="margin-top:10px"><summary><span>' + swatch('--l-hulp') + '<b>Niet herkend</b> <span class="laag">' + onbekend.length + ' object(en)</span></span>' +
+        '<span class="num">' + fmt(onbekend.reduce(function (t, l) { return t + lengteM(l); }, 0), 3) + ' m¹</span><span class="chip chip-warn">Controle nodig</span></summary>' +
+        '<div class="table-wrap"><table><thead><tr><th>Handle</th><th>Type</th><th>Laag</th><th class="num">Lengte</th><th></th></tr></thead><tbody>' +
+        onbekend.map(function (o) {
+          return '<tr><td class="handle">' + o.h + '</td><td>LINE</td><td class="laag">' + o.laag + '</td><td class="num">' + fmt(lengteM(o), 3) + ' m¹</td><td style="text-align:right"><a class="btn btn-sm" href="#regels">Regel maken</a></td></tr>';
+        }).join('') + '</tbody></table></div></details>';
+    }
+    html += '</div>';
+    html += '<div class="card"><div class="card-head"><h3>Oppervlaktes en volumes ' + dev(true) + '</h3></div><div class="card-body muted">Vloeren, plafonds en gevels in m², beton in m³, gemeten uit gesloten polylijnen en arceringen. Komt na ondersteuning voor polylijnen.</div></div>';
+    return html;
+  };
+
+  SCHERMEN.controle = function () {
+    var ctrl = controles();
+    var html = projectKop('controle');
+    html += '<div class="notice warn">Niets wordt automatisch aangepast. Elke melding blijft staan tot je hem oplost in de tekening of bewust accepteert.</div>';
+    var groepen = [['Laag niet herkend', 'Niet-geclassificeerde lijnen', false], ['Dubbele lijn', 'Dubbele lijnen', false], ['Gedeeltelijke overlap', 'Gedeeltelijke overlap', false]];
+    groepen.forEach(function (g) {
+      var items = ctrl.filter(function (c) { return c.soort === g[0]; });
+      html += '<div class="card"><div class="card-head"><h2>' + g[1] + ' ' + dev(false) + '</h2><span class="muted" style="font-size:.84rem">' + items.length + ' melding(en) · afhandelen ' + '</span></div>';
+      if (!items.length) { html += '<div class="card-body muted">Geen meldingen.</div></div>'; return; }
+      items.forEach(function (c) {
+        var chip = c.status === 'opgelost' ? '<span class="chip chip-ok">Opgelost</span>' : c.status === 'geaccepteerd' ? '<span class="chip chip-mute">Geaccepteerd</span>' : '<span class="chip chip-warn">Open</span>';
+        html += '<div class="issue ' + c.status + '"><div class="stripe"></div><div class="issue-body"><p>' + chip + ' ' + c.tekst + '</p>' +
+          '<div class="issue-meta">handles ' + c.handles.join(' + ') + ' · laag ' + c.laag + ' · ' + fmt(c.waarde, 3) + ' m¹</div></div>' +
+          '<div class="issue-actions"><button class="btn btn-sm" type="button" data-actie="selecteer" data-h="' + c.handles.join(',') + '">Selecteer in AutoCAD</button>' +
+          (c.status === 'open' ? '<button class="btn btn-sm" type="button" data-actie="accepteer" data-id="' + c.id + '">Accepteren</button><button class="btn btn-sm" type="button" data-actie="opgelost" data-id="' + c.id + '">Opgelost</button>'
+            : '<button class="btn btn-sm" type="button" data-actie="heropen" data-id="' + c.id + '">Heropenen</button>') + ' ' + dev(true) + '</div></div>';
+      });
+      html += '</div>';
+    });
+    return html;
+  };
+
+  SCHERMEN.calculatie = function () {
+    var calc = calculatie(hoeveelheden(lijnen, blokken));
+    var open = controles().filter(function (c) { return c.status === 'open'; });
+    var html = projectKop('calculatie');
+    if (open.length) html += '<div class="notice warn">Er staan nog ' + open.length + ' meetcontroles open. De calculatie gebruikt de gemeten hoeveelheden zoals ze nu zijn.</div>';
+    html += '<div class="card"><div class="card-head"><h2>Uittrekstaat met prijzen ' + dev(false) + '</h2><div class="head-actions"><button class="btn btn-sm" type="button" data-actie="artikel-toevoegen">Artikel toevoegen</button><a class="btn btn-sm" href="#export">Exporteren</a></div></div>' +
+      '<div class="table-wrap"><table><thead><tr><th>Code</th><th>Omschrijving</th><th>Leverancier</th><th class="num">Hoeveelheid</th><th class="num">Eenheidsprijs</th><th class="num">Totaal</th><th>Status</th></tr></thead><tbody>' +
+      calc.regels.map(function (x) {
+        var ctrl = open.some(function (c) { return c.laag === x.r.laag; });
+        return '<tr><td class="mono">' + x.r.def.code + '</td><td>' + x.art.naam + '<div class="laag">' + x.art.code + ' · laag ' + x.r.laag + '</div></td><td>' + x.art.leverancier + '</td>' +
+          '<td class="num">' + fmt(x.hoeveelheid, x.r.dec) + ' ' + x.art.eenheid + '</td><td class="num">' + euro(x.art.prijs) + '</td><td class="num">' + euro(x.totaal) + '</td>' +
+          '<td>' + (ctrl ? '<span class="chip chip-warn">Controle nodig</span>' : '<span class="chip chip-ok">OK</span>') + '</td></tr>';
+      }).join('') + '</tbody><tfoot>' +
+      '<tr><td colspan="5">Totaal excl. btw</td><td class="num">' + euro(calc.excl) + '</td><td></td></tr>' +
+      '<tr><td colspan="5">Btw 21%</td><td class="num">' + euro(calc.btw) + '</td><td></td></tr>' +
+      '<tr class="grand"><td colspan="5">Totaal incl. btw</td><td class="num">' + euro(calc.incl) + '</td><td></td></tr></tfoot></table></div></div>';
+    html += '<div class="grid-2"><div class="card"><div class="card-head"><h3>Opslagen en staartkosten ' + dev(true) + '</h3></div><div class="card-body muted">Algemene kosten, winst en risico, en stelposten als percentage of vast bedrag onder de uittrekstaat.</div></div>' +
+      '<div class="card"><div class="card-head"><h3>Prijzen per leverancier ' + dev(true) + '</h3></div><div class="card-body muted">Meerdere prijzen per artikel naast elkaar, met datum van de offerte, om de goedkoopste of gekozen leverancier te gebruiken.</div></div></div>';
+    return html;
+  };
+
+  SCHERMEN.revisies = function () {
+    var oud = revisieA();
+    var rOud = hoeveelheden(oud.lijnen, oud.blokken), rNu = hoeveelheden(lijnen, blokken);
+    var cOud = calculatie(rOud), cNu = calculatie(rNu);
+    var html = projectKop('revisies');
+    html += '<div class="notice">Vergelijk twee versies van de tekening. Zo zie je per element wat er bij een nieuwe revisie bij komt, verdwijnt of verandert, en wat dat kost.</div>';
+    html += '<div class="card"><div class="card-head"><h2>Revisie A (12-11-2026) → Revisie B (22-11-2026) ' + dev(true) + '</h2></div><div class="table-wrap"><table><thead><tr><th>Code</th><th>Categorie</th><th class="num">Rev A</th><th class="num">Rev B</th><th class="num">Verschil</th><th class="num">Effect op calculatie</th></tr></thead><tbody>' +
+      rNu.map(function (r, i) {
+        var a = rOud[i].waarde, b = r.waarde, d = b - a;
+        var effect = cNu.regels[i].totaal - cOud.regels[i].totaal;
+        var cls = Math.abs(d) < EPS ? '' : d > 0 ? 'diff-add' : 'diff-del';
+        return '<tr><td class="mono">' + r.def.code + '</td><td>' + r.def.naam + '</td><td class="num">' + fmt(a, r.dec) + ' ' + r.def.eenheid + '</td><td class="num">' + fmt(b, r.dec) + ' ' + r.def.eenheid + '</td>' +
+          '<td class="num ' + cls + '">' + (d > EPS ? '+' : '') + fmt(d, r.dec) + '</td><td class="num ' + cls + '">' + (effect > 0 ? '+' : '') + euro(effect) + '</td></tr>';
+      }).join('') + '</tbody><tfoot><tr class="grand"><td colspan="5">Verschil totaal excl. btw</td><td class="num">' + (cNu.excl - cOud.excl > 0 ? '+' : '') + euro(rond(cNu.excl - cOud.excl)) + '</td></tr></tfoot></table></div></div>';
+
+    // Objectniveau
+    var regels = [];
+    REV_A.weg.forEach(function (h) {
+      var l = lijnen.filter(function (x) { return x.h === h; })[0], b = blokken.filter(function (x) { return x.h === h; })[0];
+      regels.push('<tr><td><span class="diff-add">Nieuw</span></td><td class="handle">' + h + '</td><td class="laag">' + (l ? l.laag : b.laag) + '</td><td class="num">' + (l ? fmt(lengteM(l), 3) + ' m¹' : '1 st') + '</td></tr>');
+    });
+    Object.keys(REV_A.anders).forEach(function (h) {
+      var nu = lijnen.filter(function (x) { return x.h === h; })[0], was = Object.assign({}, nu, REV_A.anders[h]);
+      regels.push('<tr><td><span class="diff-mod">Gewijzigd</span></td><td class="handle">' + h + '</td><td class="laag">' + nu.laag + '</td><td class="num">' + fmt(lengteM(was), 3) + ' → ' + fmt(lengteM(nu), 3) + ' m¹</td></tr>');
+    });
+    html += '<div class="card"><div class="card-head"><h3>Gewijzigde objecten ' + dev(true) + '</h3></div><div class="table-wrap"><table><thead><tr><th>Wijziging</th><th>Handle</th><th>Laag</th><th class="num">Hoeveelheid</th></tr></thead><tbody>' + regels.join('') + '</tbody></table></div></div>';
+    return html;
+  };
+
+  SCHERMEN.export = function () {
+    var calc = calculatie(hoeveelheden(lijnen, blokken));
+    var html = projectKop('export');
+    var opties = [
+      ['PDF-uittrekstaat', 'Uittrekstaat met prijzen en totalen, klaar om te delen.', false],
+      ['Excel (CSV)', 'Alle regels als tabel voor je eigen rekenblad.', false],
+      ['Excel met formules', 'Hoeveelheid × prijs als echte formules, zodat je verder kunt rekenen.', true],
+      ['Meetrapport', 'Alle objecten met handle, laag en lengte, plus de meetcontrole. Voor verantwoording achteraf.', true]
+    ];
+    html += '<div class="grid-main"><div class="export-grid">' + opties.map(function (o) {
+      return '<div class="card"><div class="card-body export-opt"><h3 style="margin:0;font-family:var(--f-display);font-stretch:108%;font-size:1rem">' + o[0] + ' ' + dev(o[2]) + '</h3><p>' + o[1] + '</p><div><button class="btn btn-sm btn-primary" type="button" data-actie="export" data-naam="' + o[0] + '">Maak ' + o[0] + '</button></div></div></div>';
+    }).join('') + '</div>' +
+      '<div class="card"><div class="card-head"><h3>Voorbeeld PDF</h3></div><div class="card-body" style="background:var(--sunk);border-radius:0 0 8px 8px">' +
+      '<div class="pdf"><h5>Uittrekstaat · Woning type A</h5><div style="color:#666;margin-top:2px">Tekening woning_type_a_revB.dwg · 22-11-2026</div>' +
+      '<table><thead><tr><th>Code</th><th>Omschrijving</th><th style="text-align:right">Hoev.</th><th style="text-align:right">Totaal</th></tr></thead><tbody>' +
+      calc.regels.map(function (x) { return '<tr><td>' + x.r.def.code + '</td><td>' + x.r.def.naam + '</td><td style="text-align:right">' + fmt(x.hoeveelheid, x.r.dec) + ' ' + x.art.eenheid + '</td><td style="text-align:right">' + euro(x.totaal) + '</td></tr>'; }).join('') +
+      '<tr><td colspan="3"><b>Totaal excl. btw</b></td><td style="text-align:right"><b>' + euro(calc.excl) + '</b></td></tr></tbody></table>' +
+      '<div class="pdf-foot"><span>Meetplatform</span><span>Pagina 1 van 1</span></div></div></div></div></div>';
+    return html;
+  };
+
+  SCHERMEN.regels = function () {
+    var html = '<div class="page-head"><div><h1>Herkenningsregels</h1><p>Koppel AutoCAD-lagen aan bouwkundige categorieën en artikelen. Regels gelden voor alle projecten.</p></div>' +
+      '<div class="head-actions"><button class="btn btn-primary" type="button" data-actie="nieuwe-regel">Nieuwe herkenningsregel</button></div></div>';
+    html += '<div class="card"><div class="card-head"><h2>Actieve regels ' + dev(false) + '</h2></div><div class="table-wrap"><table><thead><tr><th>AutoCAD-laag</th><th>Categorie</th><th>Artikel ' + dev(true) + '</th><th>Meet</th><th class="num">Objecten in Woning type A</th><th></th></tr></thead><tbody>' +
+      Object.keys(LAGEN).map(function (laag) {
+        var d = LAGEN[laag], art = artikel(d.artikel);
+        var n = d.soort === 'lengte' ? lijnen.filter(function (l) { return l.laag === laag; }).length : blokken.filter(function (b) { return b.laag === laag; }).length;
+        return '<tr><td class="mono">' + swatch(d.kleur) + laag + '</td><td>' + d.code + ' ' + d.naam + '</td><td>' + art.code + ' <span class="muted">' + art.naam + '</span></td><td>' + (d.soort === 'lengte' ? 'lengte (m¹)' : 'aantal (st)') + '</td><td class="num">' + n + '</td><td style="text-align:right"><button class="btn btn-sm" type="button" data-actie="wijzig">Wijzigen</button></td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+    html += '<div class="card"><div class="card-head"><h2>Lagen zonder regel ' + dev(true) + '</h2><span class="muted" style="font-size:.84rem">Gevonden in je tekeningen</span></div>' +
+      '<div class="table-wrap"><table><thead><tr><th>Laag</th><th class="num">Objecten</th><th>Voorstel</th><th></th></tr></thead><tbody>' +
+      '<tr><td class="mono">' + swatch('--l-hulp') + 'HULPLIJN</td><td class="num">1</td><td class="muted">Lijkt een hulplijn: negeren in de uittrekstaat</td><td style="text-align:right"><button class="btn btn-sm" type="button" data-actie="negeer">Negeren</button> <button class="btn btn-sm" type="button" data-actie="koppel">Koppelen</button></td></tr>' +
+      '</tbody></table></div></div>';
+    html += '<div class="card"><div class="card-head"><h3>Slimmere regels ' + dev(true) + '</h3></div><div class="card-body muted">Herkenning op meer dan alleen de laagnaam: patronen zoals <span class="mono">WAND-*</span>, bloknaam, kleur of combinaties. Met een voorbeeld van welke objecten een regel raakt voordat je hem opslaat.</div></div>';
+    return html;
+  };
+
+  SCHERMEN.artikelen = function () {
+    var html = '<div class="page-head"><div><h1>Artikelen en prijzen</h1><p>De vaste artikelbibliotheek. Blijft bestaan los van de tekeningen, zoals stamdata in de database.</p></div>' +
+      '<div class="head-actions"><button class="btn btn-primary" type="button" data-actie="artikel-toevoegen">Artikel toevoegen</button></div></div>';
+    html += '<div class="notice">In het prototype kun je per project artikelen en prijzen toevoegen. Hier staan ze centraal, zodat elke tekening dezelfde prijzen gebruikt.</div>';
+    html += '<div class="card"><div class="table-wrap"><table><thead><tr><th>Code</th><th>Omschrijving</th><th>Eenheid</th><th class="num">Prijs</th><th>Leverancier</th><th>Gekoppelde laag</th></tr></thead><tbody>' +
+      ARTIKELEN.map(function (a) {
+        var laag = Object.keys(LAGEN).filter(function (k) { return LAGEN[k].artikel === a.code; })[0];
+        return '<tr><td class="mono">' + a.code + '</td><td>' + a.naam + '</td><td>' + a.eenheid + '</td><td class="num">' + euro(a.prijs) + '</td><td>' + a.leverancier + '</td><td>' + (laag ? '<span class="laag">' + laag + '</span>' : '<span class="chip chip-mute">Nog niet gebruikt</span>') + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+    html += '<div class="card"><div class="card-head"><h3>Importeren ' + dev(true) + '</h3></div><div class="card-body muted">Prijslijsten van leveranciers inlezen uit Excel, met controle op gewijzigde prijzen sinds de vorige import.</div></div>';
+    return html;
+  };
+
+  SCHERMEN.koppeling = function () {
+    var html = '<div class="page-head"><div><h1>AutoCAD-koppeling</h1><p>De verbinding tussen AutoCAD, de server en deze werkomgeving.</p></div></div>';
+    html += '<div class="tiles">' +
+      '<div class="tile"><small>AutoCAD</small><strong style="font-size:1.1rem">Verbonden</strong><span>woning_type_a_revB.dwg</span></div>' +
+      '<div class="tile"><small>Bridge</small><strong style="font-size:1.1rem">1 actief</strong><span>selecties vanuit de website</span></div>' +
+      '<div class="tile"><small>Laatste wijziging</small><strong style="font-size:1.1rem">19:12</strong><span>3 verwijderd</span></div>' +
+      '<div class="tile"><small>Gemiddelde reactietijd</small><strong style="font-size:1.1rem">28 ms</strong><span>per wijziging</span></div></div>';
+    html += '<div class="grid-main"><div class="card"><div class="card-head"><h2>Opdrachtregel ' + dev(true) + '</h2><span class="muted" style="font-size:.84rem">Meldingen zoals AutoCAD ze toont</span></div>' +
+      '<div class="cmd" style="border-radius:0 0 8px 8px">' + [
+        'Command: EXPORTMETINGEN',
+        '[MEET] Gevonden LINE-objecten: ' + lijnen.length,
+        '[MEET] Synchronisatie geslaagd: ' + lijnen.length + ' LINE-object(en).',
+        'Command: _pasteclip Specify insertion point:',
+        '[MEET] Wijzigingen verstuurd: 3 nieuw/hersteld, 0 gewijzigd, 0 verwijderd.',
+        'Command: _.erase 3 found',
+        '[MEET] Wijzigingen verstuurd: 0 nieuw/hersteld, 0 gewijzigd, 3 verwijderd.',
+        'Command: (CAD:SelecteerHandles \'("2A6" "2A8"))',
+        '[CAD] Geselecteerd via website: 2 object(en).'
+      ].map(function (t) { return '<div>' + t.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</div>'; }).join('') + '</div></div>' +
+      '<div class="card"><div class="card-head"><h2>Commando\'s in AutoCAD ' + dev(false) + '</h2></div><div class="table-wrap"><table><tbody>' +
+      [['EXPORTMETINGEN', 'Volledige synchronisatie'], ['MEETSYNCAAN', 'Automatisch synchroniseren aan'], ['MEETSYNCUIT', 'Automatisch synchroniseren uit'], ['MEETDIAG', 'Tijden per stap tonen'], ['EXPORTSQL', 'Blokken tellen en versturen']]
+        .map(function (c) { return '<tr><td class="mono">' + c[0] + '</td><td class="muted">' + c[1] + '</td></tr>'; }).join('') +
+      '</tbody></table></div></div></div>';
+    html += '<div class="grid-2"><div class="card"><div class="card-head"><h3>AutoCAD LT ' + dev(true) + '</h3></div><div class="card-body muted">Versturen zonder WinHttp, zodat de koppeling ook in AutoCAD LT 2024 en nieuwer werkt.</div></div>' +
+      '<div class="card"><div class="card-head"><h3>Meerdere tekeningen ' + dev(true) + '</h3></div><div class="card-body muted">De bridge werkt voor elke geopende tekening, en een project kan meerdere tekeningen bevatten (plattegronden, doorsneden).</div></div></div>';
+    return html;
+  };
+
+  // =====================================================
+  // ROUTER
+  // =====================================================
+  var PROJECT_VIEWS = PROJECT_TABS.map(function (t) { return t.id; });
+  var TITELS = { projecten: 'Projecten', regels: 'Herkenningsregels', artikelen: 'Artikelen en prijzen', koppeling: 'AutoCAD-koppeling' };
+
+  function toon() {
+    var naam = (location.hash || '#projecten').slice(1);
+    if (!SCHERMEN[naam]) naam = 'projecten';
+    var inProject = PROJECT_VIEWS.indexOf(naam) >= 0;
+    view.innerHTML = SCHERMEN[naam]();
+    if (SCHERMEN[naam].na) SCHERMEN[naam].na();
+    document.getElementById('crumbs').innerHTML = inProject
+      ? '<a href="#projecten" style="color:inherit">Projecten</a><span>/</span><b>Woning type A</b>'
+      : '<b>' + TITELS[naam] + '</b>';
+    document.querySelectorAll('[data-nav]').forEach(function (a) {
+      var actief = a.dataset.nav === naam || (inProject && a.dataset.nav === 'projecten');
+      a.classList.toggle('active', actief);
+      if (actief) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  }
+  window.addEventListener('hashchange', function () { toon(); window.scrollTo(0, 0); });
+
+  // Acties (niet functioneel: tonen wat er zou gebeuren)
+  view.addEventListener('click', function (e) {
+    var p = e.target.closest('[data-project]');
+    if (p) {
+      if (p.getAttribute('aria-disabled') === 'true') toast('Alleen Woning type A is uitgewerkt in dit concept.');
+      else location.hash = '#overzicht';
+      return;
+    }
+    var knop = e.target.closest('[data-actie]');
+    if (!knop) return;
+    var a = knop.dataset.actie;
+    if (a === 'selecteer') {
+      toast('Opdracht naar AutoCAD: selecteer ' + knop.dataset.h.split(',').join(', '));
+    } else if (a === 'selecteer-autocad') {
+      toast('Opdracht naar AutoCAD: selecteer ' + (selectie || []).join(', '));
+    } else if (a === 'accepteer' || a === 'opgelost' || a === 'heropen') {
+      issueStatus[knop.dataset.id] = a === 'accepteer' ? 'geaccepteerd' : a === 'opgelost' ? 'opgelost' : 'open';
+      toon();
+      toast(a === 'heropen' ? 'Melding staat weer open.' : a === 'accepteer' ? 'Melding geaccepteerd.' : 'Melding gemarkeerd als opgelost.');
+    } else if (a === 'export') {
+      toast(knop.dataset.naam + ': in dit concept wordt geen bestand gemaakt.');
+    } else {
+      toast('Concept: deze knop is nog niet uitgewerkt.');
+    }
+  });
+
+  // Zoeken (concept)
+  document.getElementById('zoek').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') toast('Zoeken is in dit concept nog niet uitgewerkt.');
+  });
+
+  // Ontwikkelstatus tonen/verbergen
+  var devToggle = document.getElementById('toon-dev');
+  try { if (localStorage.getItem('werkomgeving-dev') === 'uit') devToggle.checked = false; } catch (e) {}
+  function pasDevToe() { document.body.classList.toggle('no-dev', !devToggle.checked); }
+  devToggle.addEventListener('change', function () {
+    pasDevToe();
+    try { localStorage.setItem('werkomgeving-dev', devToggle.checked ? 'aan' : 'uit'); } catch (e) {}
+  });
+  pasDevToe();
+
+  toon();
+})();
+</script>
