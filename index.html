@@ -1,0 +1,1040 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CAD Meetplatform</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: tekenvel-concept. Rustig papier, inkt, een pen-accent; de demo (tekening + uitrekstaat) is het ene uitgesproken element. */
+:root {
+  --paper: #EEF1EE;
+  --sheet: #FAFBF9;
+  --ink: #16201B;
+  --muted: #56635C;
+  --line: #D3DAD5;
+  --grid: #E4E9E5;
+  --accent: #2346C4;
+  --accent-soft: #E3E9FB;
+  --warn: #A9560A;
+  --warn-soft: #FBEBD9;
+  --ok: #1E7449;
+  --ok-soft: #DDF1E5;
+  --cmd-bg: #1B2420;
+  --cmd-fg: #CFE0D6;
+  --l-buiten: #16201B;
+  --l-binnen: #0B7480;
+  --l-kozijn: #7B44C4;
+  --l-deur: #AE2F63;
+  --l-hulp: #8C978F;
+  --todo: #9A6A00;
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12171B; --sheet: #192026; --ink: #E4EAE6; --muted: #98A49D; --line: #2B343B; --grid: #1F272D;
+    --accent: #8CA4FF; --accent-soft: #232D4D; --warn: #F2A54E; --warn-soft: #3A2A17; --ok: #62CF94; --ok-soft: #173326;
+    --cmd-bg: #0C1012; --cmd-fg: #BFD3C7;
+    --l-buiten: #E4EAE6; --l-binnen: #3FC3CF; --l-kozijn: #B58CF0; --l-deur: #F07AA8; --l-hulp: #6E7A73; --todo: #E8B84A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12171B; --sheet: #192026; --ink: #E4EAE6; --muted: #98A49D; --line: #2B343B; --grid: #1F272D;
+  --accent: #8CA4FF; --accent-soft: #232D4D; --warn: #F2A54E; --warn-soft: #3A2A17; --ok: #62CF94; --ok-soft: #173326;
+  --cmd-bg: #0C1012; --cmd-fg: #BFD3C7;
+  --l-buiten: #E4EAE6; --l-binnen: #3FC3CF; --l-kozijn: #B58CF0; --l-deur: #F07AA8; --l-hulp: #6E7A73; --todo: #E8B84A;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.wrap {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* ---------- Kop ---------- */
+.top { padding-block: 20px; }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; color: var(--ink); }
+.brand b { font-family: var(--f-display); font-stretch: 118%; font-weight: 800; font-size: 1.15rem; letter-spacing: -0.01em; }
+.brand span { font-family: var(--f-mono); font-size: 0.75rem; color: var(--muted); }
+.nav { display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.92rem; }
+.nav a { color: var(--muted); text-decoration: none; }
+.nav a:hover { color: var(--ink); }
+
+/* ---------- Hero ---------- */
+.hero { padding-block: 40px 28px; }
+.eyebrow {
+  font-family: var(--f-mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent);
+}
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
+h1 {
+  font-stretch: 112%; font-weight: 750; letter-spacing: -0.025em; line-height: 1.02;
+  font-size: clamp(2.3rem, 5.6vw, 4.4rem); max-width: 17ch; margin-top: 14px;
+}
+h1 em { font-style: normal; color: var(--accent); }
+.lead { font-size: 1.12rem; color: var(--muted); max-width: 62ch; margin: 22px 0 0; }
+.lead strong { color: var(--ink); font-weight: 600; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; border-radius: 6px; padding: 11px 18px;
+  font: 600 0.95rem var(--f-body); text-decoration: none; cursor: pointer; border: 1px solid transparent;
+}
+.btn-primary { background: var(--accent); color: var(--sheet); }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-ghost { border-color: var(--line); color: var(--ink); background: var(--sheet); }
+.btn-ghost:hover { border-color: var(--muted); }
+
+/* Maatlijn als scheiding: element uit de tekenwereld */
+.maatlijn { display: block; width: 100%; height: 34px; margin-top: 36px; color: var(--muted); }
+.maatlijn text { font-family: var(--f-mono); font-size: 11px; fill: var(--muted); }
+.maatlijn line { stroke: var(--muted); stroke-width: 1; }
+
+/* ---------- Demo-app ---------- */
+.app {
+  margin-top: 6px; background: var(--sheet); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 0 var(--line), 0 24px 48px -32px rgba(10, 20, 15, 0.35);
+}
+.app-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px 14px; border-bottom: 1px solid var(--line);
+}
+.app-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
+.app-title b { font-weight: 600; }
+.tag {
+  font-family: var(--f-mono); font-size: 0.72rem; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--muted); white-space: nowrap;
+}
+.live { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); background: var(--ok-soft); }
+.live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); margin-right: 6px; vertical-align: 1px; }
+.btn-sim { padding: 7px 12px; font-size: 0.85rem; }
+
+.app-body { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+.pane { min-width: 0; }
+.pane-draw { border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+.props {
+  font-family: var(--f-mono); font-size: 0.78rem; color: var(--muted); padding: 8px 14px;
+  border-bottom: 1px solid var(--line); min-height: 36px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+}
+.props b { color: var(--ink); font-weight: 500; }
+.drawing { position: relative; flex: 1; padding: 8px; }
+.drawing svg { display: block; width: 100%; height: auto; max-width: 100%; }
+.cmd {
+  background: var(--cmd-bg); color: var(--cmd-fg); font-family: var(--f-mono); font-size: 0.76rem; line-height: 1.6;
+  padding: 10px 14px; min-height: 92px; overflow-x: auto;
+}
+.cmd div { white-space: pre; }
+.cmd .new { animation: cmdIn .5s ease-out; }
+@keyframes cmdIn { from { background: color-mix(in srgb, var(--cmd-fg) 18%, transparent); } to { background: transparent; } }
+.statusbar {
+  display: flex; gap: 16px; flex-wrap: wrap; font-family: var(--f-mono); font-size: 0.72rem; color: var(--muted);
+  padding: 6px 14px; border-top: 1px solid var(--line);
+}
+
+/* Tekening-entiteiten */
+.ent { fill: none; stroke-linecap: square; transition: opacity .15s, stroke .15s; }
+.lay-WAND-BUITEN { stroke: var(--l-buiten); stroke-width: 5; }
+.lay-WAND-BINNEN { stroke: var(--l-binnen); stroke-width: 3.2; }
+.lay-HULPLIJN { stroke: var(--l-hulp); stroke-width: 1.6; stroke-dasharray: 10 7; }
+.blk { transition: opacity .15s; }
+.blk.lay-KOZIJN * { stroke: var(--l-kozijn); stroke-width: 1.8; fill: var(--sheet); }
+.blk.lay-DEUR * { stroke: var(--l-deur); stroke-width: 1.6; fill: none; }
+.blk .gat { fill: var(--sheet) !important; stroke: none !important; }
+.hit { stroke: transparent; stroke-width: 22; fill: none; cursor: pointer; pointer-events: stroke; }
+.blk .hitbox { fill: transparent !important; stroke: none !important; cursor: pointer; pointer-events: all; }
+.has-sel .ent, .has-sel .blk { opacity: 0.22; }
+.has-sel .ent.sel { opacity: 1; stroke: var(--accent); }
+.has-sel .blk.sel { opacity: 1; }
+.has-sel .blk.sel * { stroke: var(--accent); }
+.ent.hover { stroke: var(--accent); }
+.ent.flash { animation: entFlash 1.6s ease-out; }
+@keyframes entFlash { 0%, 40% { stroke: var(--ok); stroke-width: 7; } 100% {} }
+.dim line { stroke: var(--muted); stroke-width: 1; }
+.dim text { font-family: var(--f-mono); font-size: 22px; fill: var(--muted); }
+.gridbg { fill: url(#raster); }
+.raster-line { stroke: var(--grid); stroke-width: 1; }
+
+/* Uitrekstaat */
+.pane-list { display: flex; flex-direction: column; }
+.pane-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  padding: 14px 16px 8px;
+}
+.pane-head h3 { font-size: 1.05rem; font-stretch: 110%; font-weight: 700; }
+.pane-head small { font-family: var(--f-mono); font-size: 0.72rem; color: var(--muted); }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th {
+  text-align: left; font-weight: 500; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th:first-child, td:first-child { padding-left: 16px; }
+th:last-child, td:last-child { padding-right: 16px; }
+.num { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.code { font-family: var(--f-mono); color: var(--muted); white-space: nowrap; }
+.laag { font-family: var(--f-mono); font-size: 0.75rem; color: var(--muted); }
+tbody tr { cursor: pointer; transition: background .15s; }
+tbody tr:hover { background: var(--accent-soft); }
+tbody tr.sel { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+tbody tr.flash { animation: rowFlash 1.6s ease-out; }
+@keyframes rowFlash { 0%, 35% { background: var(--ok-soft); } 100% { background: transparent; } }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; vertical-align: 0; }
+.chip {
+  display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+}
+.chip-ok { color: var(--ok); background: var(--ok-soft); }
+.chip-warn { color: var(--warn); background: var(--warn-soft); }
+
+.checks { padding: 14px 16px 16px; border-top: 1px solid var(--line); margin-top: auto; }
+.checks h4 { margin: 0 0 10px; font: 600 0.82rem var(--f-body); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.check {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center;
+  padding: 10px 0; border-top: 1px dashed var(--line);
+}
+.check:first-of-type { border-top: 0; }
+.check p { margin: 0; font-size: 0.88rem; }
+.check .meta { font-family: var(--f-mono); font-size: 0.74rem; color: var(--muted); }
+.check button {
+  grid-row: span 2; font: 500 0.8rem var(--f-body); padding: 6px 10px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--sheet); color: var(--ink); white-space: nowrap;
+}
+.check button:hover { border-color: var(--accent); color: var(--accent); }
+
+.demo-note { font-size: 0.85rem; color: var(--muted); margin: 12px 0 0; }
+
+/* ---------- Secties ---------- */
+.section { padding-block: 88px 8px; }
+.section-head { display: grid; gap: 12px; margin-bottom: 36px; max-width: 70ch; }
+h2 { font-size: clamp(1.7rem, 3.4vw, 2.6rem); font-stretch: 112%; font-weight: 720; letter-spacing: -0.02em; line-height: 1.08; }
+.section-head p { margin: 0; color: var(--muted); font-size: 1.05rem; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--ink); }
+.steps li { padding: 20px 22px 22px 0; display: grid; gap: 10px; align-content: start; }
+.steps li + li { padding-left: 22px; border-left: 1px solid var(--line); }
+.step-n { font-family: var(--f-mono); font-size: 0.8rem; color: var(--accent); }
+.steps h3 { font-size: 1.15rem; font-stretch: 108%; font-weight: 700; }
+.steps p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+.mono-proof {
+  font-family: var(--f-mono); font-size: 0.78rem; color: var(--ink); background: var(--sheet);
+  border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; justify-self: start; overflow-wrap: anywhere;
+}
+
+.principles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.principle { background: var(--sheet); padding: 26px 26px 24px; display: grid; gap: 10px; align-content: start; }
+.principle h3 { font-size: 1.2rem; font-stretch: 108%; font-weight: 700; }
+.principle p { margin: 0; color: var(--muted); }
+
+.audience { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; }
+.audience article { display: grid; gap: 10px; align-content: start; padding-top: 18px; border-top: 2px solid var(--ink); }
+.audience h3 { font-size: 1.35rem; font-stretch: 110%; font-weight: 720; }
+.audience p { margin: 0; color: var(--muted); }
+.audience ul { margin: 4px 0 0; padding-left: 1.1em; display: grid; gap: 6px; }
+
+.roadmap { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; }
+.roadmap h3 { font-size: 1.05rem; font-stretch: 108%; font-weight: 700; display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.roadmap ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.roadmap li { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.roadmap li span:first-child { font-family: var(--f-mono); color: var(--muted); min-width: 1.4em; }
+.roadmap .done span:first-child { color: var(--ok); }
+
+.plans { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.plan { background: var(--sheet); border: 1px solid var(--line); border-radius: 10px; padding: 26px; display: grid; gap: 12px; align-content: start; }
+.plan h3 { font-size: 1.25rem; font-stretch: 110%; font-weight: 720; }
+.plan .price { font-family: var(--f-display); font-stretch: 112%; font-weight: 750; font-size: 2rem; }
+.plan ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; color: var(--muted); }
+
+/* Invulplekken uit het bedrijfsplan */
+.todo { border-bottom: 1.5px dashed var(--todo); color: var(--todo); }
+.todo-label {
+  font-family: var(--f-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--todo); border: 1px dashed var(--todo); border-radius: 4px; padding: 1px 6px; white-space: nowrap;
+}
+body.clean .todo { border-bottom: 0; color: inherit; }
+body.clean .todo-label { display: none; }
+
+/* Contact */
+.contact { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 48px; align-items: start; }
+.contact-info p { color: var(--muted); }
+.contact-info dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 16px; margin: 20px 0 0; }
+.contact-info dt { color: var(--muted); font-size: 0.9rem; }
+.contact-info dd { margin: 0; }
+form { background: var(--sheet); border: 1px solid var(--line); border-radius: 10px; padding: 24px; display: grid; gap: 16px; }
+.field { display: grid; gap: 6px; }
+.field-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+label { font-size: 0.88rem; font-weight: 500; }
+input, select, textarea {
+  font: inherit; font-size: 0.95rem; color: var(--ink); background: var(--paper); border: 1px solid var(--line);
+  border-radius: 6px; padding: 10px 12px; width: 100%;
+}
+textarea { min-height: 96px; resize: vertical; }
+.form-msg { margin: 0; font-size: 0.9rem; padding: 10px 12px; border-radius: 6px; background: var(--accent-soft); }
+
+footer { margin-top: 96px; border-top: 1px solid var(--line); padding-block: 28px 40px; }
+footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: 0.85rem; color: var(--muted); }
+footer p { margin: 0; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.toggle input { width: auto; }
+
+/* ---------- Responsief ---------- */
+@media (max-width: 960px) {
+  .app-body { grid-template-columns: minmax(0, 1fr); }
+  .pane-draw { border-right: 0; border-bottom: 1px solid var(--line); }
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .steps li:nth-child(3) { padding-left: 0; border-left: 0; }
+  .steps li:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .contact { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+}
+@media (max-width: 640px) {
+  .steps, .principles, .audience, .roadmap, .plans, .field-row { grid-template-columns: minmax(0, 1fr); }
+  .steps li, .steps li + li { padding-left: 0; border-left: 0; padding-right: 0; }
+  .steps li + li { border-top: 1px solid var(--line); }
+  .col-laag { display: none; }
+  .section { padding-block: 64px 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+<style>
+/* Basis die de publicatie normaal toevoegt */
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#start"><b>Meetplatform</b><span>voor AutoCAD-tekeningen</span></a>
+    <nav class="nav" aria-label="Hoofdmenu">
+      <a href="#demo">Demo</a>
+      <a href="#werking">Werking</a>
+      <a href="#betrouwbaar">Betrouwbaarheid</a>
+      <a href="#voor-wie">Voor wie</a>
+      <a href="#pakketten">Pakketten</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="start">
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">Voor aannemers en calculators</div>
+      <h1>Hoeveelheden uit je tekening. <em>Elke meter terug te vinden.</em></h1>
+      <p class="lead">Het meetplatform leest lijnen en blokken rechtstreeks uit AutoCAD, herkent ze aan hun laag en zet ze in een uitrekstaat. <strong>Wijzig je de tekening, dan wijzigt de uitrekstaat mee.</strong> Twijfelgevallen krijgen het label "Controle nodig" in plaats van stil te verdwijnen.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="#contact">Demo aanvragen</a>
+        <a class="btn btn-ghost" href="#demo">Probeer de voorbeeldtekening</a>
+      </div>
+
+      <svg class="maatlijn" viewBox="0 0 1000 34" preserveAspectRatio="none" aria-hidden="true">
+        <line x1="0" y1="20" x2="1000" y2="20"></line>
+        <line x1="0" y1="8" x2="0" y2="32"></line>
+        <line x1="1000" y1="8" x2="1000" y2="32"></line>
+        <line x1="-6" y1="26" x2="6" y2="14"></line>
+        <line x1="994" y1="26" x2="1006" y2="14"></line>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ================= DEMO ================= -->
+  <section id="demo" aria-label="Interactieve demo">
+    <div class="wrap">
+      <div class="app">
+        <div class="app-bar">
+          <div class="app-title">
+            <b>Voorbeeldproject: woning type A</b>
+            <span class="tag">voorbeeldtekening</span>
+            <span class="tag live">Verbonden met AutoCAD</span>
+          </div>
+          <button class="btn btn-ghost btn-sim" id="sim" type="button">Simuleer: teken een binnenwand</button>
+        </div>
+
+        <div class="app-body">
+          <div class="pane pane-draw">
+            <div class="props" id="props" aria-live="polite">Klik op een lijn, of kies een regel in de uitrekstaat.</div>
+            <div class="drawing">
+              <svg id="tekening" viewBox="0 0 1360 1160" role="img" aria-label="Plattegrond van de voorbeeldwoning met wanden, kozijnen en deuren"></svg>
+            </div>
+            <div class="cmd" id="cmd" aria-label="AutoCAD-opdrachtregel"></div>
+            <div class="statusbar" id="statusbar"></div>
+          </div>
+
+          <div class="pane pane-list">
+            <div class="pane-head">
+              <h3>Uitrekstaat</h3>
+              <small>elementcodes NL-SfB</small>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Omschrijving</th>
+                    <th class="col-laag">Laag</th>
+                    <th class="num">Hoeveelheid</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="staat"></tbody>
+              </table>
+            </div>
+
+            <div class="checks">
+              <h4>Meetcontrole</h4>
+              <div id="controle"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="demo-note">Dit is een nagebootste demo met een voorbeeldtekening. Alle hoeveelheden worden in de pagina zelf uit de lijncoördinaten berekend, in millimeters omgerekend naar meters.</p>
+    </div>
+  </section>
+
+  <!-- ================= WERKING ================= -->
+  <section class="section" id="werking">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Werking</div>
+        <h2>Je tekent zoals je gewend bent. De uitrekstaat volgt.</h2>
+        <p>Geen aparte software om in te tekenen en geen handmatig overtikken van maten.</p>
+      </div>
+      <ol class="steps">
+        <li>
+          <span class="step-n">Stap 1</span>
+          <h3>Script laden in AutoCAD</h3>
+          <p>Eén keer het meetscript laden. Daarna werk je verder in je eigen tekening.</p>
+          <span class="mono-proof">Command: APPLOAD</span>
+        </li>
+        <li>
+          <span class="step-n">Stap 2</span>
+          <h3>Wijzigingen komen direct binnen</h3>
+          <p>Na elk commando gaan alleen de gewijzigde objecten naar het platform. Ook bij grote tekeningen blijft AutoCAD vlot.</p>
+          <span class="mono-proof">1 nieuw, 0 gewijzigd, 0 verwijderd</span>
+        </li>
+        <li>
+          <span class="step-n">Stap 3</span>
+          <h3>Herkenning aan de laagnaam</h3>
+          <p>Je koppelt een laag eenmalig aan een artikel. Daarna worden alle lijnen op die laag automatisch meegeteld.</p>
+          <span class="mono-proof">WAND-BINNEN → 22 Binnenwanden</span>
+        </li>
+        <li>
+          <span class="step-n">Stap 4</span>
+          <h3>Controleren en exporteren</h3>
+          <p>Dubbele en overlappende lijnen worden gemarkeerd. Daarna exporteer je de uitrekstaat naar PDF of Excel.</p>
+          <span class="mono-proof">PDF · Excel</span>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ================= BETROUWBAARHEID ================= -->
+  <section class="section" id="betrouwbaar">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Betrouwbaarheid</div>
+        <h2>Gemaakt voor getallen waar geld aan hangt</h2>
+        <p>Een hoeveelheid in een begroting moet je kunnen uitleggen. Daarom werkt het platform volgens vier vaste regels.</p>
+      </div>
+      <div class="principles">
+        <div class="principle">
+          <h3>Elke meting heeft een eenheid</h3>
+          <p>Lengtes, aantallen en later oppervlaktes staan altijd met hun eenheid in de uitrekstaat. Nooit een kaal getal.</p>
+          <span class="mono-proof">lengte: 7,000 m¹ · kozijnen: 4 st</span>
+        </div>
+        <div class="principle">
+          <h3>Terug te vinden tot op het object</h3>
+          <p>Elke regel verwijst naar de objecten in de tekening. Met één klik selecteer je ze in AutoCAD.</p>
+          <span class="mono-proof">handle 2A6 · laag WAND-BINNEN</span>
+        </div>
+        <div class="principle">
+          <h3>Twijfel wordt gemarkeerd</h3>
+          <p>Een lijn op een onbekende laag of een dubbele lijn verdwijnt niet stilletjes. Je ziet hem terug met het label "Controle nodig".</p>
+          <span class="mono-proof">status: Controle nodig</span>
+        </div>
+        <div class="principle">
+          <h3>Gecontroleerd tegen bekende waarden</h3>
+          <p>Rekenregels worden getest met tekeningen waarvan de uitkomst vaststaat, voordat ze in gebruik gaan.</p>
+          <span class="mono-proof">0–5000 en 3000–8000 mm → overlap 2,000 m</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VOOR WIE ================= -->
+  <section class="section" id="voor-wie">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Voor wie</div>
+        <h2>Voor wie met tekeningen rekent</h2>
+      </div>
+      <div class="audience">
+        <article>
+          <h3>Aannemers</h3>
+          <p>Snel zien wat er in een tekening zit, en wat er verandert als er een nieuwe revisie binnenkomt.</p>
+          <ul>
+            <li>Hoeveelheden per element, direct uit de tekening</li>
+            <li>Wijzigingen tussen revisies zichtbaar in de uitrekstaat</li>
+            <li>Export naar PDF voor overleg op de bouw</li>
+          </ul>
+        </article>
+        <article>
+          <h3>Calculators</h3>
+          <p>Hoeveelheden die je kunt narekenen, met de bron erbij.</p>
+          <ul>
+            <li>Elke regel herleidbaar naar de lijnen in de tekening</li>
+            <li>Meetcontrole op dubbele en overlappende lijnen</li>
+            <li>Export naar Excel voor je eigen begroting</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ROADMAP ================= -->
+  <section class="section" id="ontwikkeling">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Stand van zaken</div>
+        <h2>Wat het nu kan, en wat eraan komt</h2>
+      </div>
+      <div class="roadmap">
+        <div>
+          <h3><span class="chip chip-ok">Beschikbaar</span></h3>
+          <ul>
+            <li class="done"><span>✓</span><span>Aantallen uit blokken, zoals kozijnen en deuren</span></li>
+            <li class="done"><span>✓</span><span>Lengtes uit lijnen in de tekening</span></li>
+            <li class="done"><span>✓</span><span>Herkenning via laagnaam</span></li>
+            <li class="done"><span>✓</span><span>Meetcontrole op dubbele en overlappende lijnen</span></li>
+            <li class="done"><span>✓</span><span>Live koppeling met AutoCAD, alleen wijzigingen</span></li>
+            <li class="done"><span>✓</span><span>Selecteren in AutoCAD vanuit de uitrekstaat</span></li>
+            <li class="done"><span>✓</span><span>Export naar PDF en Excel</span></li>
+          </ul>
+        </div>
+        <div>
+          <h3><span class="chip chip-warn">In ontwikkeling</span></h3>
+          <ul>
+            <li><span>○</span><span>Polylijnen en bogen meten</span></li>
+            <li><span>○</span><span>Oppervlaktes en volumes</span></li>
+            <li><span>○</span><span>Tekeneenheid automatisch uit de tekening lezen</span></li>
+            <li><span>○</span><span>Ondersteuning voor AutoCAD LT</span></li>
+            <li><span>○</span><span>Meerdere tekeningen per project</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PAKKETTEN ================= -->
+  <section class="section" id="pakketten">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Pakketten</div>
+        <h2>Starten met een pilot</h2>
+        <p><span class="todo">Korte uitleg over het aanbod, uit het bedrijfsplan.</span> <span class="todo-label">invullen</span></p>
+      </div>
+      <div class="plans">
+        <div class="plan">
+          <h3>Pilot</h3>
+          <div class="price"><span class="todo">€ …</span></div>
+          <p><span class="todo">Voorwaarden en looptijd van de pilot.</span> <span class="todo-label">invullen</span></p>
+          <ul>
+            <li>Begeleiding bij het instellen van herkenningsregels</li>
+            <li>Werken met je eigen tekeningen</li>
+            <li><span class="todo">Overige inhoud pilot</span></li>
+          </ul>
+        </div>
+        <div class="plan">
+          <h3>Abonnement</h3>
+          <div class="price"><span class="todo">€ … per maand</span></div>
+          <p><span class="todo">Prijsopbouw, bijvoorbeeld per gebruiker of per project.</span> <span class="todo-label">invullen</span></p>
+          <ul>
+            <li>Live koppeling met AutoCAD</li>
+            <li>Uitrekstaat, meetcontrole en export</li>
+            <li><span class="todo">Overige inhoud abonnement</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONTACT ================= -->
+  <section class="section" id="contact">
+    <div class="wrap contact">
+      <div class="contact-info">
+        <div class="eyebrow">Contact</div>
+        <h2>Zien hoe het werkt met jouw tekening?</h2>
+        <p>Vraag een demo aan. We laten het platform zien met een tekening uit jouw eigen praktijk.</p>
+        <dl>
+          <dt>Naam</dt><dd><span class="todo">Contactpersoon</span></dd>
+          <dt>E-mail</dt><dd><span class="todo">naam@bedrijf.nl</span></dd>
+          <dt>Telefoon</dt><dd><span class="todo">06 …</span></dd>
+        </dl>
+      </div>
+      <form id="aanvraag" novalidate>
+        <div class="field-row">
+          <div class="field">
+            <label for="f-naam">Naam</label>
+            <input id="f-naam" name="naam" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label for="f-bedrijf">Bedrijf</label>
+            <input id="f-bedrijf" name="bedrijf" autocomplete="organization">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f-mail">E-mail</label>
+            <input id="f-mail" name="email" type="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="f-rol">Ik ben</label>
+            <select id="f-rol" name="rol">
+              <option>Aannemer</option>
+              <option>Calculator</option>
+              <option>Tekenaar / ontwerper</option>
+              <option>Anders</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-bericht">Waar wil je het voor gebruiken?</label>
+          <textarea id="f-bericht" name="bericht"></textarea>
+        </div>
+        <div><button class="btn btn-primary" type="submit">Demo aanvragen</button></div>
+        <p class="form-msg" id="form-msg" hidden></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>© 2026 <span class="todo">Bedrijfsnaam</span> · Het meetplatform is in ontwikkeling. AutoCAD is een merk van Autodesk, Inc.</p>
+    <label class="toggle" for="toon-todo"><input type="checkbox" id="toon-todo" checked> Invulplekken markeren</label>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- Voorbeeldtekening (coördinaten in mm) ----------
+  var LAGEN = {
+    'WAND-BUITEN': { code: '21', naam: 'Buitenwanden', eenheid: 'm¹', kleur: '--l-buiten', soort: 'lengte' },
+    'WAND-BINNEN': { code: '22', naam: 'Binnenwanden', eenheid: 'm¹', kleur: '--l-binnen', soort: 'lengte' },
+    'KOZIJN':      { code: '31', naam: 'Buitenkozijnen', eenheid: 'st', kleur: '--l-kozijn', soort: 'aantal' },
+    'DEUR':        { code: '32', naam: 'Binnendeuren', eenheid: 'st', kleur: '--l-deur', soort: 'aantal' }
+  };
+
+  var lijnen = [
+    { h: '2A0', laag: 'WAND-BUITEN', x1: 0, y1: 0, x2: 12000, y2: 0 },
+    { h: '2A1', laag: 'WAND-BUITEN', x1: 12000, y1: 0, x2: 12000, y2: 8000 },
+    { h: '2A2', laag: 'WAND-BUITEN', x1: 12000, y1: 8000, x2: 0, y2: 8000 },
+    { h: '2A3', laag: 'WAND-BUITEN', x1: 0, y1: 8000, x2: 0, y2: 0 },
+    { h: '2A4', laag: 'WAND-BUITEN', x1: 10800, y1: 8000, x2: 12000, y2: 8000 },
+    { h: '2A5', laag: 'WAND-BINNEN', x1: 5000, y1: 0, x2: 5000, y2: 8000 },
+    { h: '2A6', laag: 'WAND-BINNEN', x1: 5000, y1: 4400, x2: 12000, y2: 4400 },
+    { h: '2A7', laag: 'WAND-BINNEN', x1: 0, y1: 3600, x2: 5000, y2: 3600 },
+    { h: '2A8', laag: 'WAND-BINNEN', x1: 12000, y1: 4400, x2: 5000, y2: 4400 },
+    { h: '2A9', laag: 'WAND-BINNEN', x1: 8500, y1: 4400, x2: 8500, y2: 8000 },
+    { h: '2AA', laag: 'HULPLIJN', x1: 0, y1: 9200, x2: 12000, y2: 9200 }
+  ];
+
+  // Blokken: x,y = beginpunt van de opening, len = breedte, r = 'h' of 'v'
+  var blokken = [
+    { h: '2B0', laag: 'KOZIJN', x: 1500, y: 0, len: 1200, r: 'h' },
+    { h: '2B1', laag: 'KOZIJN', x: 7000, y: 0, len: 1200, r: 'h' },
+    { h: '2B2', laag: 'KOZIJN', x: 12000, y: 1500, len: 1200, r: 'v' },
+    { h: '2B3', laag: 'KOZIJN', x: 2000, y: 8000, len: 1200, r: 'h' },
+    { h: '2B4', laag: 'DEUR', x: 5000, y: 1500, len: 900, r: 'v', zwaai: [1, 0] },
+    { h: '2B5', laag: 'DEUR', x: 6000, y: 4400, len: 900, r: 'h', zwaai: [0, -1] },
+    { h: '2B6', laag: 'DEUR', x: 2000, y: 3600, len: 900, r: 'h', zwaai: [0, 1] }
+  ];
+
+  var SIM_LIJN = { h: '2C1', laag: 'WAND-BINNEN', x1: 0, y1: 6000, x2: 5000, y2: 6000 };
+
+  // ---------- Rekenen ----------
+  function lengteM(l) { return Math.hypot(l.x2 - l.x1, l.y2 - l.y1) / 1000; }
+
+  // Zelfde regel als het platform: overlap op dezelfde rechte lijn, in meters
+  var EPS = 0.000001;
+  function overlapM(a, b) {
+    var vx = a.x2 - a.x1, vy = a.y2 - a.y1, la = Math.hypot(vx, vy);
+    var wx = b.x2 - b.x1, wy = b.y2 - b.y1, lb = Math.hypot(wx, wy);
+    if (la <= EPS || lb <= EPS) return 0;
+    var dC = Math.abs(vx * (b.y1 - a.y1) - vy * (b.x1 - a.x1)) / la;
+    var dD = Math.abs(vx * (b.y2 - a.y1) - vy * (b.x2 - a.x1)) / la;
+    if (dC > EPS || dD > EPS) return 0;
+    var ux = vx / la, uy = vy / la;
+    var pC = (b.x1 - a.x1) * ux + (b.y1 - a.y1) * uy;
+    var pD = (b.x2 - a.x1) * ux + (b.y2 - a.y1) * uy;
+    var ov = Math.max(0, Math.min(la, Math.max(pC, pD)) - Math.max(0, Math.min(pC, pD)));
+    return ov <= EPS ? 0 : ov / 1000;
+  }
+
+  function fmt(n, dec) {
+    return n.toLocaleString('nl-NL', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  }
+
+  function controles() {
+    var uit = [];
+    for (var i = 0; i < lijnen.length; i++) {
+      for (var j = i + 1; j < lijnen.length; j++) {
+        var a = lijnen[i], b = lijnen[j];
+        var ov = overlapM(a, b);
+        if (ov <= 0) continue;
+        var dubbel = Math.abs(ov - lengteM(a)) <= EPS && Math.abs(ov - lengteM(b)) <= EPS;
+        uit.push({
+          soort: dubbel ? 'Dubbele lijn' : 'Gedeeltelijke overlap',
+          tekst: dubbel
+            ? 'Twee identieke lijnen op ' + a.laag + '. Mogelijk dubbel geteld.'
+            : 'Lijnen overlappen elkaar op ' + a.laag + '.',
+          meta: 'handles ' + a.h + ' + ' + b.h + ' · ' + fmt(ov, 3) + ' m¹',
+          laag: a.laag,
+          handles: [a.h, b.h]
+        });
+      }
+    }
+    lijnen.forEach(function (l) {
+      if (!LAGEN[l.laag]) {
+        uit.push({
+          soort: 'Laag niet herkend',
+          tekst: 'Lijn op laag ' + l.laag + ' hoort bij geen artikel. Niet meegeteld.',
+          meta: 'handle ' + l.h + ' · ' + fmt(lengteM(l), 3) + ' m¹',
+          laag: l.laag,
+          handles: [l.h]
+        });
+      }
+    });
+    return uit;
+  }
+
+  function regels(ctrl) {
+    var rijen = [];
+    Object.keys(LAGEN).forEach(function (laag) {
+      var def = LAGEN[laag];
+      var handles = [], waarde = 0;
+      if (def.soort === 'lengte') {
+        lijnen.forEach(function (l) { if (l.laag === laag) { handles.push(l.h); waarde += lengteM(l); } });
+      } else {
+        blokken.forEach(function (b) { if (b.laag === laag) { handles.push(b.h); waarde += 1; } });
+      }
+      rijen.push({
+        laag: laag, code: def.code, naam: def.naam, eenheid: def.eenheid, kleur: def.kleur,
+        waarde: waarde, handles: handles, dec: def.soort === 'lengte' ? 3 : 0,
+        controle: ctrl.some(function (c) { return c.laag === laag; })
+      });
+    });
+    // Niet-herkende lagen blijven zichtbaar
+    var onbekend = {};
+    lijnen.forEach(function (l) {
+      if (LAGEN[l.laag]) return;
+      onbekend[l.laag] = onbekend[l.laag] || { waarde: 0, handles: [] };
+      onbekend[l.laag].waarde += lengteM(l);
+      onbekend[l.laag].handles.push(l.h);
+    });
+    Object.keys(onbekend).forEach(function (laag) {
+      rijen.push({
+        laag: laag, code: '—', naam: 'Niet herkend', eenheid: 'm¹', kleur: '--l-hulp',
+        waarde: onbekend[laag].waarde, handles: onbekend[laag].handles, dec: 3, controle: true
+      });
+    });
+    return rijen;
+  }
+
+  // ---------- Tekenen ----------
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.getElementById('tekening');
+  function sx(x) { return (x + 800) / 10; }
+  function sy(y) { return (10400 - y) / 10; }
+  function el(naam, attrs, ouder) {
+    var e = document.createElementNS(NS, naam);
+    Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+    if (ouder) ouder.appendChild(e);
+    return e;
+  }
+
+  var laagEnt;
+  function tekenAlles() {
+    svg.textContent = '';
+    var defs = el('defs', {}, svg);
+    var pat = el('pattern', { id: 'raster', width: 50, height: 50, patternUnits: 'userSpaceOnUse' }, defs);
+    el('path', { d: 'M50 0H0V50', class: 'raster-line', fill: 'none' }, pat);
+    el('rect', { x: 0, y: 0, width: 1360, height: 1160, class: 'gridbg' }, svg);
+
+    // Maatvoering (geen meetobject)
+    var dim = el('g', { class: 'dim', 'aria-hidden': 'true' }, svg);
+    var dy = sy(-900);
+    el('line', { x1: sx(0), y1: dy, x2: sx(12000), y2: dy }, dim);
+    [0, 5000, 12000].forEach(function (x) {
+      el('line', { x1: sx(x), y1: sy(-300), x2: sx(x), y2: dy + 12 }, dim);
+      el('line', { x1: sx(x) - 9, y1: dy + 9, x2: sx(x) + 9, y2: dy - 9 }, dim);
+    });
+    var t1 = el('text', { x: sx(2500), y: dy - 10, 'text-anchor': 'middle' }, dim); t1.textContent = '5000';
+    var t2 = el('text', { x: sx(8500), y: dy - 10, 'text-anchor': 'middle' }, dim); t2.textContent = '7000';
+
+    laagEnt = el('g', {}, svg);
+    lijnen.forEach(function (l) {
+      var g = el('g', {}, laagEnt);
+      el('line', { x1: sx(l.x1), y1: sy(l.y1), x2: sx(l.x2), y2: sy(l.y2), class: 'ent lay-' + l.laag, 'data-h': l.h }, g);
+      var hit = el('line', { x1: sx(l.x1), y1: sy(l.y1), x2: sx(l.x2), y2: sy(l.y2), class: 'hit', 'data-h': l.h }, g);
+      hit.addEventListener('mouseenter', function () { hover(l.h, true); });
+      hit.addEventListener('mouseleave', function () { hover(l.h, false); });
+      hit.addEventListener('click', function () { kiesObject(l.h); });
+    });
+
+    blokken.forEach(function (b) {
+      var g = el('g', { class: 'blk lay-' + b.laag, 'data-h': b.h }, laagEnt);
+      var dik = b.laag === 'KOZIJN' ? 180 : 140;
+      if (b.r === 'h') {
+        el('rect', { x: sx(b.x), y: sy(b.y + dik / 2), width: b.len / 10, height: dik / 10, class: 'gat' }, g);
+      } else {
+        el('rect', { x: sx(b.x - dik / 2), y: sy(b.y + b.len), width: dik / 10, height: b.len / 10, class: 'gat' }, g);
+      }
+      if (b.laag === 'KOZIJN') {
+        if (b.r === 'h') {
+          el('rect', { x: sx(b.x), y: sy(b.y + 90), width: b.len / 10, height: 18 }, g);
+          el('line', { x1: sx(b.x), y1: sy(b.y), x2: sx(b.x + b.len), y2: sy(b.y) }, g);
+        } else {
+          el('rect', { x: sx(b.x - 90), y: sy(b.y + b.len), width: 18, height: b.len / 10 }, g);
+          el('line', { x1: sx(b.x), y1: sy(b.y), x2: sx(b.x), y2: sy(b.y + b.len) }, g);
+        }
+      } else {
+        // Deur: blad vanaf het scharnier plus zwaaiboog
+        var hx = b.x, hy = b.y;
+        var ex = b.r === 'h' ? b.x + b.len : b.x, ey = b.r === 'h' ? b.y : b.y + b.len;
+        var bx = hx + b.zwaai[0] * b.len, by = hy + b.zwaai[1] * b.len;
+        el('line', { x1: sx(hx), y1: sy(hy), x2: sx(bx), y2: sy(by) }, g);
+        var px = sx(ex) - sx(hx), py = sy(ey) - sy(hy), qx = sx(bx) - sx(hx), qy = sy(by) - sy(hy);
+        var sweep = (px * qy - py * qx) > 0 ? 1 : 0;
+        el('path', { d: 'M' + sx(ex) + ' ' + sy(ey) + ' A' + b.len / 10 + ' ' + b.len / 10 + ' 0 0 ' + sweep + ' ' + sx(bx) + ' ' + sy(by) }, g);
+      }
+      var bb = g.getBBox();
+      var hb = el('rect', { x: bb.x - 6, y: bb.y - 6, width: bb.width + 12, height: bb.height + 12, class: 'hitbox' }, g);
+      hb.addEventListener('click', function () { kiesObject(b.h); });
+    });
+
+    pasSelectieToe();
+  }
+
+  // ---------- Uitrekstaat en controle ----------
+  var staatEl = document.getElementById('staat');
+  var ctrlEl = document.getElementById('controle');
+  var huidigeRegels = [];
+
+  function render(flitsLaag) {
+    var ctrl = controles();
+    huidigeRegels = regels(ctrl);
+    staatEl.textContent = '';
+    huidigeRegels.forEach(function (r) {
+      var tr = document.createElement('tr');
+      tr.tabIndex = 0;
+      tr.dataset.laag = r.laag;
+      tr.innerHTML =
+        '<td class="code">' + r.code + '</td>' +
+        '<td><span class="swatch" style="background:var(' + r.kleur + ')"></span>' + r.naam + '</td>' +
+        '<td class="laag col-laag">' + r.laag + '</td>' +
+        '<td class="num">' + fmt(r.waarde, r.dec) + ' ' + r.eenheid + '</td>' +
+        '<td>' + (r.controle ? '<span class="chip chip-warn">Controle nodig</span>' : '<span class="chip chip-ok">OK</span>') + '</td>';
+      tr.addEventListener('click', function () { kiesRegel(r); });
+      tr.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); kiesRegel(r); }
+      });
+      if (flitsLaag === r.laag) tr.classList.add('flash');
+      if (selectieLaag === r.laag) tr.classList.add('sel');
+      staatEl.appendChild(tr);
+    });
+
+    ctrlEl.textContent = '';
+    ctrl.forEach(function (c) {
+      var d = document.createElement('div');
+      d.className = 'check';
+      var p = document.createElement('p');
+      p.innerHTML = '<span class="chip chip-warn">' + c.soort + '</span> ' + c.tekst;
+      var m = document.createElement('div');
+      m.className = 'meta';
+      m.textContent = c.meta;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = 'Selecteer in AutoCAD';
+      btn.addEventListener('click', function () { selecteerViaWebsite(c.handles); });
+      d.appendChild(p); d.appendChild(btn); d.appendChild(m);
+      ctrlEl.appendChild(d);
+    });
+
+    var aantalBlok = blokken.length;
+    document.getElementById('statusbar').innerHTML =
+      '<span>Tekeneenheid: millimeter</span><span>Model</span><span>' + lijnen.length + ' lijnen</span><span>' + aantalBlok + ' blokken</span>';
+  }
+
+  // ---------- Selectie ----------
+  var selectie = null, selectieLaag = null;
+  var propsEl = document.getElementById('props');
+
+  function pasSelectieToe() {
+    svg.classList.toggle('has-sel', !!selectie);
+    svg.querySelectorAll('.ent, .blk').forEach(function (e) {
+      e.classList.toggle('sel', !!selectie && selectie.indexOf(e.getAttribute('data-h')) >= 0);
+    });
+    staatEl.querySelectorAll('tr').forEach(function (tr) {
+      tr.classList.toggle('sel', tr.dataset.laag === selectieLaag);
+    });
+  }
+
+  function kiesRegel(r) {
+    if (selectieLaag === r.laag) { wisSelectie(); return; }
+    selectie = r.handles.slice();
+    selectieLaag = r.laag;
+    propsEl.innerHTML = '<span><b>' + r.naam + '</b></span><span>laag ' + r.laag + '</span><span>' +
+      r.handles.length + ' object(en)</span><span>' + fmt(r.waarde, r.dec) + ' ' + r.eenheid + '</span>';
+    pasSelectieToe();
+  }
+
+  function kiesObject(h) {
+    var l = lijnen.filter(function (x) { return x.h === h; })[0];
+    var b = blokken.filter(function (x) { return x.h === h; })[0];
+    selectie = [h];
+    selectieLaag = null;
+    if (l) {
+      propsEl.innerHTML = '<span>handle <b>' + l.h + '</b></span><span>LINE</span><span>laag ' + l.laag +
+        '</span><span>lengte <b>' + fmt(lengteM(l), 3) + ' m¹</b></span>';
+    } else if (b) {
+      propsEl.innerHTML = '<span>handle <b>' + b.h + '</b></span><span>INSERT</span><span>laag ' + b.laag +
+        '</span><span>aantal <b>1 st</b></span>';
+    }
+    pasSelectieToe();
+  }
+
+  function wisSelectie() {
+    selectie = null; selectieLaag = null;
+    propsEl.textContent = 'Klik op een lijn, of kies een regel in de uitrekstaat.';
+    pasSelectieToe();
+  }
+
+  function hover(h, aan) {
+    var e = svg.querySelector('.ent[data-h="' + h + '"]');
+    if (e) e.classList.toggle('hover', aan);
+  }
+
+  function selecteerViaWebsite(handles) {
+    selectie = handles.slice();
+    selectieLaag = null;
+    propsEl.innerHTML = '<span>Geselecteerd vanuit de website:</span><span><b>' + handles.join(', ') + '</b></span>';
+    pasSelectieToe();
+    log(['Command: (CAD:SelecteerHandles \'(' + handles.map(function (h) { return '"' + h + '"'; }).join(' ') + '))',
+         '[CAD] Geselecteerd via website: ' + handles.length + ' object(en).']);
+  }
+
+  // ---------- Opdrachtregel ----------
+  var cmdEl = document.getElementById('cmd');
+  var cmdRegels = [];
+  function log(nieuw) {
+    cmdRegels = cmdRegels.concat(nieuw.map(function (t) { return { t: t, nieuw: true }; })).slice(-4);
+    cmdEl.textContent = '';
+    cmdRegels.forEach(function (r) {
+      var d = document.createElement('div');
+      d.textContent = r.t;
+      if (r.nieuw) d.className = 'new';
+      r.nieuw = false;
+      cmdEl.appendChild(d);
+    });
+  }
+
+  // ---------- Simulatie: lijn tekenen en wissen ----------
+  var simBtn = document.getElementById('sim');
+  var simActief = false;
+  simBtn.addEventListener('click', function () {
+    if (!simActief) {
+      lijnen.push(Object.assign({}, SIM_LIJN));
+      simActief = true;
+      simBtn.textContent = 'Simuleer: wis de binnenwand';
+      log(['Command: _line',
+           '[MEET] Wijzigingen verstuurd: 1 nieuw/hersteld, 0 gewijzigd, 0 verwijderd.']);
+    } else {
+      lijnen = lijnen.filter(function (l) { return l.h !== SIM_LIJN.h; });
+      simActief = false;
+      simBtn.textContent = 'Simuleer: teken een binnenwand';
+      log(['Command: _.erase 1 found',
+           '[MEET] Wijzigingen verstuurd: 0 nieuw/hersteld, 0 gewijzigd, 1 verwijderd.']);
+    }
+    if (selectieLaag === 'WAND-BINNEN') {
+      var r = regels(controles()).filter(function (x) { return x.laag === 'WAND-BINNEN'; })[0];
+      selectie = r.handles.slice();
+    }
+    render('WAND-BINNEN');
+    tekenAlles();
+    if (selectieLaag === 'WAND-BINNEN') {
+      var rij = huidigeRegels.filter(function (x) { return x.laag === 'WAND-BINNEN'; })[0];
+      kiesRegelOpnieuw(rij);
+    }
+    if (simActief) {
+      var nieuw = svg.querySelector('.ent[data-h="' + SIM_LIJN.h + '"]');
+      if (nieuw) nieuw.classList.add('flash');
+    }
+  });
+
+  function kiesRegelOpnieuw(r) {
+    selectieLaag = null;
+    kiesRegel(r);
+  }
+
+  // ---------- Start ----------
+  render();
+  tekenAlles();
+  log(['Command: EXPORTMETINGEN',
+       '[MEET] Gevonden LINE-objecten: ' + lijnen.length,
+       '[MEET] Synchronisatie geslaagd: ' + lijnen.length + ' LINE-object(en).']);
+
+  // ---------- Invulplekken ----------
+  var toggle = document.getElementById('toon-todo');
+  try {
+    if (localStorage.getItem('meetplatform-todo') === 'uit') toggle.checked = false;
+  } catch (e) {}
+  function pasTodoToe() { document.body.classList.toggle('clean', !toggle.checked); }
+  toggle.addEventListener('change', function () {
+    pasTodoToe();
+    try { localStorage.setItem('meetplatform-todo', toggle.checked ? 'aan' : 'uit'); } catch (e) {}
+  });
+  pasTodoToe();
+
+  // ---------- Formulier (demo) ----------
+  var form = document.getElementById('aanvraag');
+  var msg = document.getElementById('form-msg');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var naam = document.getElementById('f-naam').value.trim();
+    var mail = document.getElementById('f-mail').value.trim();
+    if (!naam || !/^\S+@\S+\.\S+$/.test(mail)) {
+      msg.textContent = 'Vul je naam en een geldig e-mailadres in.';
+    } else {
+      msg.textContent = 'Dit is een demopagina: je aanvraag is niet verstuurd. Neem contact op via de gegevens hiernaast.';
+    }
+    msg.hidden = false;
+  });
+})();
+</script>
+</body>
+</html>
